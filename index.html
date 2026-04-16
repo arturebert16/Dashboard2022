@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard – Pesquisas Eleitorais 2022</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">
+        <span class="dot d1"></span>
+        <span class="dot d2"></span>
+        <span class="dot d3"></span>
+        <span class="dot d4"></span>
+      </div>
+      <div class="brand-text">
+        <h1>Pesquisas Eleitorais 2022</h1>
+        <p>Performance dos institutos vs. resultado oficial do TSE</p>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-tab="geral" role="tab">Geral</button>
+      <button class="tab" data-tab="t1" role="tab">1° Turno</button>
+      <button class="tab" data-tab="t2" role="tab">2° Turno</button>
+    </nav>
+  </header>
+
+  <main class="content">
+    <!-- =================== GERAL =================== -->
+    <section class="panel active" id="panel-geral">
+      <div class="panel-header">
+        <div>
+          <h2>Visão geral de acertos</h2>
+          <p class="muted" id="metodologia-desc">Acerto = <code>1 − |Instituto − Real| / Real</code> &nbsp;·&nbsp; janela: 25/ago a 01/nov de 2022</p>
+        </div>
+        <div class="header-controls">
+          <div class="seg-toggle" id="metodologia-toggle">
+            <button class="seg active" data-metodologia="acerto">Acerto Simples</button>
+            <button class="seg" data-metodologia="pindograma">Erro Ajustado (Pindograma)</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-2" id="grid-geral"></div>
+    </section>
+
+    <!-- =================== 1° TURNO =================== -->
+    <section class="panel" id="panel-t1">
+      <div class="panel-header">
+        <div>
+          <h2>1° Turno — pesquisas vs. resultado oficial</h2>
+          <p class="muted">Linha tracejada vertical = dia da eleição (02/10). Clique em um nome para isolar; clique em outro para somá-lo.</p>
+        </div>
+        <div class="header-controls">
+          <div class="seg-toggle" id="view-t1-toggle">
+            <button class="seg active" data-view="candidato">Por candidato</button>
+            <button class="seg" data-view="instituto">Por instituto</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-2" id="grid-t1"></div>
+    </section>
+
+    <!-- =================== 2° TURNO =================== -->
+    <section class="panel" id="panel-t2">
+      <div class="panel-header">
+        <div>
+          <h2>2° Turno — pesquisas vs. resultado oficial</h2>
+          <p class="muted">Linha tracejada vertical = dia da eleição (30/10). Clique em um nome para isolar; clique em outro para somá-lo.</p>
+        </div>
+        <div class="header-controls">
+          <div class="seg-toggle" id="view-t2-toggle">
+            <button class="seg active" data-view="candidato">Por candidato</button>
+            <button class="seg" data-view="instituto">Por instituto</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-2" id="grid-t2"></div>
+    </section>
+  </main>
+
+  <footer class="footbar">
+    <span>Apex Partners · Dashboard de Pesquisas 2022</span>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.49.1/dist/apexcharts.min.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
