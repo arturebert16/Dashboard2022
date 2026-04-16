@@ -132,11 +132,31 @@ const state = {
 // ============================================================
 //                  APEX BASE CONFIG
 // ============================================================
+// Config base "Zoomable Timeseries" (ApexCharts): toolbar nativo + zoom em X
+// com autoescalonamento de Y ao fazer zoom.
 const baseChart = {
   fontFamily: 'Manrope, sans-serif',
   background: 'transparent',
-  toolbar: { show: false },
-  zoom: { enabled: false },
+  toolbar: {
+    show: true,
+    offsetX: -8,
+    offsetY: -4,
+    autoSelected: 'zoom',
+    tools: {
+      download: false,
+      selection: false,
+      zoom: true,
+      zoomin: true,
+      zoomout: true,
+      pan: true,
+      reset: true,
+    },
+  },
+  zoom: {
+    enabled: true,
+    type: 'x',
+    autoScaleYaxis: true,
+  },
   animations: { enabled: false },
 };
 
@@ -347,27 +367,94 @@ function wireCardControls({ card, chartEl, btnFs, btnY, btnReset }, chart, ctx) 
     applyYRange(chart, ctx);
   });
 
-  // Reset legend
+  // Reset: legenda + zoom + Y-compact
   btnReset.addEventListener('click', () => {
-    chart.w.globals.seriesNames.forEach(n => chart.showSeries(n));
+    resetCardChart(chart, ctx, btnY);
   });
 }
 
 /**
+ * Reseta o card: mostra todas as séries, desativa Y-compact, volta o zoom
+ * para a janela cheia e recomputa Y para todos os pontos.
+ */
+function resetCardChart(chart, ctx, btnY, seriesFilter) {
+  // Legenda: mostra tudo (seriesFilter pode excluir HR-* para instituto card)
+  chart.w.globals.seriesNames.forEach(n => {
+    if (seriesFilter && !seriesFilter(n)) return;
+    chart.showSeries(n);
+  });
+  // Y-compact OFF + xaxis full + yaxis recomputado para a janela cheia
+  if (ctx) {
+    ctx.yCompact = false;
+    if (btnY) btnY.classList.remove('active');
+    const r = computeYInWindow(ctx.allPoints, JANELA_INI_MS, JANELA_FIM_MS, ctx.extraYValues || []);
+    chart.updateOptions({
+      xaxis: { ...(ctx.xaxisBase || {}), min: JANELA_INI_MS, max: JANELA_FIM_MS },
+      yaxis: r ? { ...ctx.yaxisBase, min: r.min, max: r.max } : { ...ctx.yaxisBase },
+    }, false, false);
+  }
+}
+
+/**
  * Aplica range X/Y conforme ctx.yCompact:
- *  - false: X = janela completa, Y = range full
- *  - true:  X = a partir de COMPACT_INI (05/10), Y = min/max apenas dos pontos nessa janela
+ *  - false: X = janela completa, Y = auto (recalculado pela visible window)
+ *  - true:  X = a partir de COMPACT_INI, Y = min/max dos pontos nessa janela
  */
 function applyYRange(chart, ctx) {
-  const range = ctx.yCompact ? ctx.yRangeCompact : ctx.yRangeFull;
-  if (!range) return;
   const compactIni = ctx.compactIniMs != null ? ctx.compactIniMs : COMPACT_INI_MS;
   const xMin = ctx.yCompact ? compactIni : JANELA_INI_MS;
   const xMax = JANELA_FIM_MS;
+  const r = ctx.yCompact
+    ? ctx.yRangeCompact
+    : computeYInWindow(ctx.allPoints, xMin, xMax, ctx.extraYValues || []);
+  if (!r) return;
   chart.updateOptions({
     xaxis: { ...(ctx.xaxisBase || {}), min: xMin, max: xMax },
-    yaxis: { ...ctx.yaxisBase, min: range.min, max: range.max },
+    yaxis: { ...ctx.yaxisBase, min: r.min, max: r.max },
   }, false, false);
+}
+
+/**
+ * Calcula o range Y (com padding) dos pontos cujo X está em [xMin, xMax].
+ * Usado tanto pelo botão "compactar Y" quanto pelo zoomed event do toolbar
+ * nativo do ApexCharts.
+ */
+function computeYInWindow(points, xMin, xMax, extraValues = []) {
+  const vals = [];
+  (points || []).forEach(p => {
+    if (p == null || p.x == null) return;
+    if (p.x < xMin || p.x > xMax) return;
+    if (Array.isArray(p.yRange)) p.yRange.forEach(v => { if (v != null) vals.push(v); });
+    if (p.y != null) {
+      if (Array.isArray(p.y)) p.y.forEach(v => { if (v != null) vals.push(v); });
+      else vals.push(p.y);
+    }
+  });
+  extraValues.forEach(v => { if (v != null) vals.push(v); });
+  if (!vals.length) return null;
+  const s = vals.slice().sort((a, b) => a - b);
+  const min = s[0], max = s[s.length - 1];
+  const pad = Math.max(0.5, (max - min) * 0.1);
+  return { min: Math.floor(min - pad), max: Math.ceil(max + pad) };
+}
+
+/**
+ * Handler do evento "zoomed" (toolbar nativo de zoomable timeseries).
+ * Recalcula o Y range para caber nos pontos visíveis após o zoom.
+ * Também é invocado no reset (retorna xaxis.min/max = undefined → janela cheia).
+ */
+function makeZoomedHandler(ctx) {
+  return function(chartContext, { xaxis }) {
+    // Se o user está com Y compactado, não mexe — deixa o range dele valer.
+    if (ctx.yCompact) return;
+    const xMin = (xaxis && xaxis.min != null) ? xaxis.min : JANELA_INI_MS;
+    const xMax = (xaxis && xaxis.max != null) ? xaxis.max : JANELA_FIM_MS;
+    const r = computeYInWindow(ctx.allPoints, xMin, xMax, ctx.extraYValues || []);
+    if (!r) return;
+    chartContext.updateOptions({
+      yaxis: { ...ctx.yaxisBase, min: r.min, max: r.max },
+    }, false, false);
+  };
 }
 
 /**
@@ -490,12 +577,28 @@ function makeGeralLineCard(parent, title, chip, chipClass, series, electionLines
 
   const xAnnotations = (electionLines || []).map(electionLineAnnotation);
 
+  // ctx criado ANTES da config para que o handler de "zoomed" capture a
+  // referência correta (o handler lê ctx.allPoints/extraYValues em runtime).
+  const ctx = {
+    yCompact: false,
+    yRangeFull: yRanges.full,
+    yRangeCompact: yRanges.compact,
+    yaxisBase,
+    xaxisBase,
+    compactIniMs,
+    allPoints,
+    extraYValues: [],
+  };
+
   const cfg = {
     chart: {
       ...baseChart,
       type: 'line',
       height: 360,
-      events: { legendClick: legendClickHandler() },
+      events: {
+        legendClick: legendClickHandler(),
+        zoomed: makeZoomedHandler(ctx),
+      },
     },
     series,
     colors: series.map(s => s.color),
@@ -513,14 +616,6 @@ function makeGeralLineCard(parent, title, chip, chipClass, series, electionLines
   const chart = new ApexCharts(ctrl.chartEl, cfg);
   chart.render();
 
-  const ctx = {
-    yCompact: false,
-    yRangeFull: yRanges.full,
-    yRangeCompact: yRanges.compact,
-    yaxisBase,
-    xaxisBase,
-    compactIniMs,
-  };
   wireCardControls(ctrl, chart, ctx);
 
   return { ctrl, chart };
@@ -595,7 +690,7 @@ function realValueOutros(real) {
 // ============================================================
 //   Card de "candidato" (mantém line/rangeArea + nova UX)
 // ============================================================
-function candidateChartConfig(seriesByInst, realValue, mode, electionTurno) {
+function candidateChartConfig(seriesByInst, realValue, mode, electionTurno, zoomedHandler) {
   const realPoints = [
     { x: JANELA_INI_MS, y: realValue },
     { x: JANELA_FIM_MS, y: realValue },
@@ -651,7 +746,10 @@ function candidateChartConfig(seriesByInst, realValue, mode, electionTurno) {
         ...baseChart,
         height: 380,
         type: mode === 'line' ? 'line' : 'rangeArea',
-        events: { legendClick: legendClickHandler() },
+        events: {
+          legendClick: legendClickHandler(),
+          ...(zoomedHandler ? { zoomed: zoomedHandler } : {}),
+        },
       },
       series,
       colors,
@@ -693,6 +791,7 @@ function candidateChartConfig(seriesByInst, realValue, mode, electionTurno) {
     yaxisBase,
     xaxisBase,
     compactIniMs,
+    allPoints,
   };
 }
 
@@ -711,21 +810,31 @@ function createCandidateCard(parent, title, seriesByInst, realValue, electionTur
 
   let mode = 'line';
   let chart = null;
-  let ctx = null;
+  // ctx persistente — mutado a cada build() para que o handler zoomed (que
+  // captura a referência) sempre leia os valores atualizados.
+  const ctx = {
+    yCompact: false,
+    yRangeFull: null,
+    yRangeCompact: null,
+    yaxisBase: null,
+    xaxisBase: null,
+    compactIniMs: compactIniFor([electionTurno]),
+    allPoints: [],
+    extraYValues: [realValue],
+  };
+  const zoomedHandler = makeZoomedHandler(ctx);
 
   function build() {
-    const built = candidateChartConfig(seriesByInst, realValue, mode, electionTurno);
+    const built = candidateChartConfig(seriesByInst, realValue, mode, electionTurno, zoomedHandler);
     if (chart) chart.destroy();
     chart = new ApexCharts(ctrl.chartEl, built.cfg);
     chart.render();
-    ctx = {
-      yCompact: ctx ? ctx.yCompact : false,
-      yRangeFull: built.yRanges.full,
-      yRangeCompact: built.yRanges.compact,
-      yaxisBase: built.yaxisBase,
-      xaxisBase: built.xaxisBase,
-      compactIniMs: built.compactIniMs,
-    };
+    ctx.yRangeFull = built.yRanges.full;
+    ctx.yRangeCompact = built.yRanges.compact;
+    ctx.yaxisBase = built.yaxisBase;
+    ctx.xaxisBase = built.xaxisBase;
+    ctx.compactIniMs = built.compactIniMs;
+    ctx.allPoints = built.allPoints;
     if (ctx.yCompact) applyYRange(chart, ctx);
   }
   build();
@@ -761,7 +870,7 @@ function createCandidateCard(parent, title, seriesByInst, realValue, electionTur
     applyYRange(chart, ctx);
   });
   ctrl.btnReset.addEventListener('click', () => {
-    chart.w.globals.seriesNames.forEach(n => chart.showSeries(n));
+    resetCardChart(chart, ctx, ctrl.btnY);
   });
 }
 
@@ -840,7 +949,10 @@ function createInstitutoCard(parent, instituto, polls, real, candidatos, electio
     yaxisBase,
     xaxisBase,
     compactIniMs,
+    allPoints,
+    extraYValues: realValues,
   };
+  const zoomedHandler = makeZoomedHandler(ctx);
 
   function build() {
     // Séries principais (por candidato)
@@ -902,7 +1014,10 @@ function createInstitutoCard(parent, instituto, polls, real, candidatos, electio
         ...baseChart,
         type: mode === 'line' ? 'line' : 'rangeArea',
         height: 380,
-        events: { legendClick: legendClickHandler() },
+        events: {
+          legendClick: legendClickHandler(),
+          zoomed: zoomedHandler,
+        },
       },
       series: allSeries,
       colors,
@@ -990,7 +1105,7 @@ function createInstitutoCard(parent, instituto, polls, real, candidatos, electio
     applyYRange(chart, ctx);
   });
   ctrl.btnReset.addEventListener('click', () => {
-    chart.w.globals.seriesNames.forEach(n => { if (!n.startsWith('HR-')) chart.showSeries(n); });
+    resetCardChart(chart, ctx, ctrl.btnY, (n) => !n.startsWith('HR-'));
   });
 }
 

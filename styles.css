@@ -409,3 +409,34 @@ body.has-fullscreen::before {
   stroke: var(--line) !important;
 }
 .apexcharts-toolbar { z-index: 1 !important; }
+
+/* Toolbar do "Zoomable Timeseries" (zoom, pan, reset) – ajustes dark */
+.apexcharts-toolbar .apexcharts-menu-icon svg,
+.apexcharts-toolbar .apexcharts-zoom-icon svg,
+.apexcharts-toolbar .apexcharts-zoomin-icon svg,
+.apexcharts-toolbar .apexcharts-zoomout-icon svg,
+.apexcharts-toolbar .apexcharts-pan-icon svg,
+.apexcharts-toolbar .apexcharts-reset-icon svg,
+.apexcharts-toolbar .apexcharts-selection-icon svg {
+  fill: var(--muted) !important;
+  stroke: var(--muted) !important;
+  transition: fill 0.15s ease, stroke 0.15s ease;
+}
+.apexcharts-toolbar .apexcharts-selected svg,
+.apexcharts-toolbar .apexcharts-zoom-icon:hover svg,
+.apexcharts-toolbar .apexcharts-zoomin-icon:hover svg,
+.apexcharts-toolbar .apexcharts-zoomout-icon:hover svg,
+.apexcharts-toolbar .apexcharts-pan-icon:hover svg,
+.apexcharts-toolbar .apexcharts-reset-icon:hover svg,
+.apexcharts-toolbar .apexcharts-selection-icon:hover svg {
+  fill: var(--c1) !important;
+  stroke: var(--c1) !important;
+}
+.apexcharts-toolbar .apexcharts-pan-icon svg {
+  fill: none !important;
+}
+.apexcharts-toolbar .apexcharts-pan-icon:hover svg,
+.apexcharts-toolbar .apexcharts-pan-icon.apexcharts-selected svg {
+  fill: none !important;
+  stroke: var(--c1) !important;
+}
