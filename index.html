@@ -27,6 +27,7 @@
       <button class="tab active" data-tab="geral" role="tab">Geral</button>
       <button class="tab" data-tab="t1" role="tab">1° Turno</button>
       <button class="tab" data-tab="t2" role="tab">2° Turno</button>
+      <button class="tab" data-tab="stats" role="tab">Estatísticas dos Institutos</button>
     </nav>
   </header>
 
@@ -83,6 +84,25 @@
       </div>
 
       <div class="grid grid-2" id="grid-t2"></div>
+    </section>
+
+    <!-- =================== ESTATÍSTICAS DOS INSTITUTOS =================== -->
+    <section class="panel" id="panel-stats">
+      <div class="panel-header">
+        <div>
+          <h2>Estatísticas dos Institutos</h2>
+          <p class="muted">Perfil metodológico, volatilidade e acurácia das estimativas vs. resultado oficial do TSE. Selecione um instituto abaixo.</p>
+        </div>
+        <div class="header-controls">
+          <div class="seg-toggle" id="stats-turno-toggle">
+            <button class="seg active" data-turno="t1">1° Turno</button>
+            <button class="seg" data-turno="t2">2° Turno</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="inst-pills" id="inst-pills"></div>
+      <div id="stats-body"></div>
     </section>
   </main>
 

@@ -127,6 +127,8 @@ const state = {
   metodologia: 'acerto',
   viewT1: 'candidato',
   viewT2: 'candidato',
+  statsInstituto: null,
+  statsTurno: 't1',
 };
 
 // ============================================================
@@ -1195,6 +1197,611 @@ function renderT2() {
 }
 
 // ============================================================
+//          ESTATÍSTICAS DOS INSTITUTOS (nova aba)
+// ============================================================
+
+/**
+ * Calcula estatísticas consolidadas para um instituto, filtradas por turno.
+ * - metodo: moda (mais frequente) entre todas as pesquisas do instituto naquele turno
+ * - amostraMean: média do campo `amostra`
+ * - margemModa: margem de erro mais frequente (tipicamente fixa por instituto)
+ * - volatility: array ordenado por std — desvio-padrão das estimativas por candidato
+ * - accuracy: array com métricas vs. resultado real do TSE (MAE, viés, calibração)
+ * - overall: métricas agregadas (MAE global, calibração global)
+ * - lastPoll: última pesquisa antes do dia da eleição (teste definitivo)
+ */
+function computeInstitutoStats(instName, turno) {
+  const sourcePolls = turno === 't2' ? polls2 : polls1;
+  const real = turno === 't2' ? real2 : real1;
+  const eleicaoMs = turno === 't2' ? ELEICAO_T2_MS : ELEICAO_T1_MS;
+  const allPolls = sourcePolls.filter(p => p.instituto === instName);
+  if (allPolls.length === 0) return null;
+
+  // Método principal (moda)
+  const metodoCount = {};
+  allPolls.forEach(p => {
+    if (!p.metodo) return;
+    metodoCount[p.metodo] = (metodoCount[p.metodo] || 0) + 1;
+  });
+  const metodoEntries = Object.entries(metodoCount).sort((a, b) => b[1] - a[1]);
+  const metodo = metodoEntries.length ? metodoEntries[0][0] : '—';
+  const metodoUnico = metodoEntries.length === 1;
+
+  // Amostra média
+  const amostras = allPolls.map(p => p.amostra).filter(v => v != null);
+  const amostraMean = amostras.length
+    ? amostras.reduce((s, v) => s + v, 0) / amostras.length
+    : null;
+
+  // Margem de erro: usa moda; se houver mais de uma, calcula média
+  const margens = allPolls.map(p => p.margem_erro).filter(v => v != null);
+  const margemCount = {};
+  margens.forEach(m => { margemCount[m] = (margemCount[m] || 0) + 1; });
+  const margemEntries = Object.entries(margemCount).sort((a, b) => b[1] - a[1]);
+  const margemModa = margemEntries.length ? Number(margemEntries[0][0]) : null;
+  const margemMean = margens.length ? margens.reduce((s, v) => s + v, 0) / margens.length : null;
+  const margemUnica = margemEntries.length === 1;
+
+  // Conjunto de candidatos com dado real disponível (base para todas as métricas)
+  const allCandidatos = new Set();
+  allPolls.forEach(p => Object.keys(p.estimativas || {}).forEach(c => allCandidatos.add(c)));
+
+  // ------- Volatilidade (variância intra-instituto) -------
+  const volatility = [];
+  allCandidatos.forEach(c => {
+    const vals = [];
+    allPolls.forEach(p => {
+      const v = p.estimativas && p.estimativas[c];
+      if (v != null) vals.push(v);
+    });
+    if (vals.length < 2) return;
+    const mean = vals.reduce((s, v) => s + v, 0) / vals.length;
+    const variance = vals.reduce((s, v) => s + (v - mean) ** 2, 0) / vals.length;
+    const std = Math.sqrt(variance);
+    const min = Math.min(...vals);
+    const max = Math.max(...vals);
+    volatility.push({ candidato: c, std, mean, min, max, range: max - min, n: vals.length });
+  });
+  volatility.sort((a, b) => a.std - b.std);
+
+  // ------- Acurácia vs. resultado real (TSE) -------
+  // Para cada candidato com valor real conhecido:
+  //   MAE   = média de |est − real|         (acurácia pura)
+  //   Viés  = média de  (est − real)        (tendência de super/subestimar)
+  //   RMSE  = raiz( média (est − real)²)     (penaliza erros grandes)
+  //   Hit%  = fração de pesquisas onde |est − real| ≤ margem_erro declarada
+  //           (calibração da margem: deveria ficar em torno de 95% se a margem é honesta)
+  const accuracy = [];
+  allCandidatos.forEach(c => {
+    const realVal = real && real.estimativas ? real.estimativas[c] : null;
+    if (realVal == null) return;
+    const diffs = [];
+    const absDiffs = [];
+    const sqDiffs = [];
+    let hits = 0;
+    let hitsTotal = 0;
+    allPolls.forEach(p => {
+      const est = p.estimativas && p.estimativas[c];
+      if (est == null) return;
+      const d = est - realVal;
+      diffs.push(d);
+      absDiffs.push(Math.abs(d));
+      sqDiffs.push(d * d);
+      if (p.margem_erro != null) {
+        hitsTotal++;
+        if (Math.abs(d) <= p.margem_erro) hits++;
+      }
+    });
+    if (diffs.length === 0) return;
+    const mae = absDiffs.reduce((s, v) => s + v, 0) / absDiffs.length;
+    const bias = diffs.reduce((s, v) => s + v, 0) / diffs.length;
+    const rmse = Math.sqrt(sqDiffs.reduce((s, v) => s + v, 0) / sqDiffs.length);
+    const hitRate = hitsTotal > 0 ? hits / hitsTotal : null;
+    accuracy.push({ candidato: c, real: realVal, mae, bias, rmse, hitRate, hits, hitsTotal, n: diffs.length });
+  });
+  accuracy.sort((a, b) => a.mae - b.mae);
+
+  // ------- Métricas agregadas (instituto como um todo) -------
+  const overallMae = accuracy.length
+    ? accuracy.reduce((s, a) => s + a.mae, 0) / accuracy.length
+    : null;
+  const overallBias = accuracy.length
+    ? accuracy.reduce((s, a) => s + a.bias, 0) / accuracy.length
+    : null;
+  const totalHits = accuracy.reduce((s, a) => s + a.hits, 0);
+  const totalHitsN = accuracy.reduce((s, a) => s + a.hitsTotal, 0);
+  const overallHitRate = totalHitsN > 0 ? totalHits / totalHitsN : null;
+
+  // ------- Última pesquisa antes da eleição (teste definitivo) -------
+  const preEleicao = allPolls.filter(p => dateMs(p.data) <= eleicaoMs);
+  let lastPoll = null;
+  if (preEleicao.length > 0) {
+    const latest = preEleicao.reduce((a, b) => dateMs(a.data) >= dateMs(b.data) ? a : b);
+    const diasAntes = Math.round((eleicaoMs - dateMs(latest.data)) / (1000 * 60 * 60 * 24));
+    const errosCandidato = [];
+    allCandidatos.forEach(c => {
+      const est = latest.estimativas && latest.estimativas[c];
+      const realVal = real && real.estimativas ? real.estimativas[c] : null;
+      if (est == null || realVal == null) return;
+      errosCandidato.push({
+        candidato: c,
+        est, real: realVal,
+        diff: est - realVal,
+        absDiff: Math.abs(est - realVal),
+      });
+    });
+    errosCandidato.sort((a, b) => b.absDiff - a.absDiff);
+    const lastMae = errosCandidato.length
+      ? errosCandidato.reduce((s, e) => s + e.absDiff, 0) / errosCandidato.length
+      : null;
+    lastPoll = {
+      data: latest.data,
+      diasAntes,
+      metodo: latest.metodo,
+      amostra: latest.amostra,
+      margem: latest.margem_erro,
+      erros: errosCandidato,
+      mae: lastMae,
+    };
+  }
+
+  return {
+    turno,
+    numPolls: allPolls.length,
+    metodo, metodoUnico,
+    amostraMean,
+    margemModa, margemMean, margemUnica,
+    volatility,
+    accuracy,
+    overallMae, overallBias, overallHitRate, totalHits, totalHitsN,
+    lastPoll,
+  };
+}
+
+// Classifica volatilidade em low/mid/high relativo ao máximo observado no instituto
+function volBucket(std, maxStd) {
+  if (maxStd <= 0) return 'low';
+  const r = std / maxStd;
+  if (r < 0.4) return 'low';
+  if (r < 0.75) return 'mid';
+  return 'high';
+}
+
+function volBadge(bucket) {
+  if (bucket === 'low')  return `<span class="badge badge-low">Consistente</span>`;
+  if (bucket === 'high') return `<span class="badge badge-high">Volátil</span>`;
+  return `<span class="badge badge-mid">Moderado</span>`;
+}
+
+/**
+ * Classifica a calibração da margem declarada do instituto.
+ *  Se a margem é de ±2pp @ 95% de confiança, pesquisas honestas deveriam
+ *  acertar dentro dessa faixa em ~95% dos casos. Valores muito menores
+ *  indicam que a margem subestima o erro real.
+ */
+function calibBucket(hitRate) {
+  if (hitRate == null) return 'mid';
+  if (hitRate >= 0.85) return 'low';     // bem calibrado / dentro do esperado
+  if (hitRate >= 0.60) return 'mid';     // razoável
+  return 'high';                          // margem subestimada / ruim
+}
+
+function calibBadge(hitRate) {
+  const b = calibBucket(hitRate);
+  if (b === 'low')  return `<span class="badge badge-low">Bem calibrado</span>`;
+  if (b === 'high') return `<span class="badge badge-high">Mal calibrado</span>`;
+  return `<span class="badge badge-mid">Razoável</span>`;
+}
+
+/** Formata um valor sinalizado com seta ▲▼ e 2 casas. */
+function fmtSigned(v, unit) {
+  if (v == null || isNaN(v)) return '—';
+  const arrow = v > 0.05 ? '▲' : v < -0.05 ? '▼' : '•';
+  const sign  = v > 0 ? '+' : '';
+  return `${arrow} ${sign}${v.toFixed(2)}${unit || ''}`;
+}
+
+/** Classe de cor para viés (positivo = superestima / negativo = subestima). */
+function biasClass(v) {
+  if (v == null || isNaN(v)) return '';
+  if (Math.abs(v) < 0.5) return 'bias-neutral';
+  return v > 0 ? 'bias-over' : 'bias-under';
+}
+
+/** Descrição textual do viés médio. */
+function biasText(v) {
+  if (v == null || isNaN(v)) return '—';
+  if (Math.abs(v) < 0.25) return 'praticamente neutro';
+  return v > 0 ? 'tende a superestimar' : 'tende a subestimar';
+}
+
+// Ícones SVG para os stat cards
+const ICO_METODO  = `<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/><path d="M8 4v6"/></svg>`;
+const ICO_AMOSTRA = `<svg viewBox="0 0 24 24"><circle cx="9" cy="9" r="4"/><path d="M17 13a4 4 0 1 1-4 4"/><path d="M22 22l-2-2"/></svg>`;
+const ICO_MARGEM  = `<svg viewBox="0 0 24 24"><path d="M4 12h16"/><path d="M7 8l-3 4 3 4"/><path d="M17 8l3 4-3 4"/></svg>`;
+
+/** Formata amostra (milhares com separador) */
+function fmtAmostra(v) {
+  if (v == null) return '—';
+  return Math.round(v).toLocaleString('pt-BR');
+}
+
+/**
+ * Renderiza os pills de seleção de instituto. Pills sem pesquisas no turno
+ * atual ficam esmaecidos (visíveis, mas desabilitados).
+ */
+function renderInstPills(activeInst, onSelect, turno) {
+  const wrap = document.getElementById('inst-pills');
+  wrap.innerHTML = '';
+  const sourcePolls = turno === 't2' ? polls2 : polls1;
+  const hasDataBy = {};
+  institutos.forEach(i => { hasDataBy[i] = sourcePolls.some(p => p.instituto === i); });
+  institutos.forEach(inst => {
+    const enabled = hasDataBy[inst];
+    const btn = document.createElement('button');
+    btn.className = 'inst-pill'
+      + (inst === activeInst ? ' active' : '')
+      + (enabled ? '' : ' disabled');
+    btn.style.color = colorByInst[inst];
+    btn.disabled = !enabled;
+    btn.title = enabled ? inst : `${inst} — sem pesquisas neste turno`;
+    btn.innerHTML = `<span class="dot"></span><span>${inst}</span>`;
+    btn.addEventListener('click', () => {
+      if (!enabled) return;
+      if (inst === state.statsInstituto) return;
+      onSelect(inst);
+    });
+    wrap.appendChild(btn);
+  });
+}
+
+/**
+ * Renderiza o corpo (perfil + volatilidade + acurácia) para o instituto selecionado.
+ */
+function renderStatsBody(instName, turno) {
+  const body = document.getElementById('stats-body');
+  body.innerHTML = '';
+  const s = computeInstitutoStats(instName, turno);
+  const turnoLabel = turno === 't2' ? '2° turno' : '1° turno';
+  if (!s) {
+    body.innerHTML = `<div class="stats-empty">Sem pesquisas de "${instName}" no ${turnoLabel}.</div>`;
+    return;
+  }
+
+  // ---------- Perfil (cards de resumo) ----------
+  const summary = document.createElement('div');
+  summary.className = 'stats-summary';
+
+  const metodoSub = s.metodoUnico
+    ? `todas as ${s.numPolls} pesquisas do ${turnoLabel}`
+    : `método mais frequente entre ${s.numPolls} pesquisas do ${turnoLabel}`;
+
+  const margemSub = s.margemUnica
+    ? `fixa em todas as ${s.numPolls} pesquisas do ${turnoLabel}`
+    : `valor mais frequente · média: ±${s.margemMean.toFixed(2)} pp`;
+
+  summary.innerHTML = `
+    <div class="stat-card accent-1">
+      <div class="stat-label"><span class="stat-icon">${ICO_METODO}</span>Método principal</div>
+      <div class="stat-value">${s.metodo}</div>
+      <div class="stat-sub">${metodoSub}</div>
+    </div>
+    <div class="stat-card accent-2">
+      <div class="stat-label"><span class="stat-icon">${ICO_AMOSTRA}</span>Amostra média</div>
+      <div class="stat-value">${fmtAmostra(s.amostraMean)}</div>
+      <div class="stat-sub">entrevistados por pesquisa · N = ${s.numPolls}</div>
+    </div>
+    <div class="stat-card accent-3">
+      <div class="stat-label"><span class="stat-icon">${ICO_MARGEM}</span>Margem de erro</div>
+      <div class="stat-value">± ${s.margemModa != null ? s.margemModa.toFixed(1) : '—'} pp</div>
+      <div class="stat-sub">${margemSub}</div>
+    </div>
+  `;
+  body.appendChild(summary);
+
+  // ---------- Título da seção ----------
+  const h = document.createElement('h3');
+  h.className = 'stats-section-title';
+  h.textContent = 'Consistência e Volatilidade';
+  body.appendChild(h);
+  const hint = document.createElement('p');
+  hint.className = 'stats-section-hint';
+  hint.innerHTML = `
+    Desvio-padrão das estimativas do instituto para cada candidato (em pontos percentuais).
+    Quanto <strong>menor o σ</strong>, mais consistente; quanto <strong>maior</strong>, mais volátil entre pesquisas.
+  `;
+  body.appendChild(hint);
+
+  // ---------- Tabela + highlight cards ----------
+  if (s.volatility.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'stats-empty';
+    empty.textContent = 'Dados insuficientes para computar volatilidade (mínimo 2 pesquisas por candidato).';
+    body.appendChild(empty);
+    return;
+  }
+
+  const grid = document.createElement('div');
+  grid.className = 'vol-grid';
+  body.appendChild(grid);
+
+  const maxStd = Math.max(...s.volatility.map(v => v.std));
+
+  // Tabela
+  const tableCard = document.createElement('div');
+  tableCard.className = 'vol-table-card';
+  const tableRows = s.volatility.map(v => {
+    const pct = maxStd > 0 ? (v.std / maxStd) * 100 : 0;
+    const color = colorByCandidato[v.candidato] || '#999';
+    const bucket = volBucket(v.std, maxStd);
+    return `
+      <tr>
+        <td class="name">
+          <span class="cdot" style="background:${color}"></span>
+          <span>${v.candidato}</span>
+        </td>
+        <td class="num">${v.std.toFixed(2)}</td>
+        <td class="num">${v.mean.toFixed(2)}%</td>
+        <td class="num">${v.min.toFixed(1)} – ${v.max.toFixed(1)}%</td>
+        <td><div class="bar" title="σ / σ_max = ${pct.toFixed(0)}%"><div class="bar-fill" style="--pct:${pct.toFixed(1)}%"></div></div></td>
+        <td>${volBadge(bucket)}</td>
+      </tr>
+    `;
+  }).join('');
+  tableCard.innerHTML = `
+    <table class="vol-table">
+      <thead>
+        <tr>
+          <th>Candidato</th>
+          <th class="num">σ (pp)</th>
+          <th class="num">Média</th>
+          <th class="num">Intervalo</th>
+          <th style="width:140px">Volatilidade relativa</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>${tableRows}</tbody>
+    </table>
+  `;
+  grid.appendChild(tableCard);
+
+  // Highlight cards (mais consistente + mais volátil)
+  const highlight = document.createElement('div');
+  highlight.className = 'vol-highlight';
+  const lowest = s.volatility[0];
+  const highest = s.volatility[s.volatility.length - 1];
+  const lowColor = colorByCandidato[lowest.candidato] || '#999';
+  const highColor = colorByCandidato[highest.candidato] || '#999';
+  highlight.innerHTML = `
+    <div class="vol-hl-card low">
+      <div class="hl-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg>
+        Mais consistente
+      </div>
+      <div class="hl-candidate"><span class="cdot" style="background:${lowColor}"></span>${lowest.candidato}</div>
+      <div class="hl-value">σ = ${lowest.std.toFixed(2)} pp · intervalo ${lowest.min.toFixed(1)}–${lowest.max.toFixed(1)}%</div>
+    </div>
+    <div class="vol-hl-card high">
+      <div class="hl-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l3-3 4 4 8-8"/><path d="M14 5h7v7"/></svg>
+        Mais volátil
+      </div>
+      <div class="hl-candidate"><span class="cdot" style="background:${highColor}"></span>${highest.candidato}</div>
+      <div class="hl-value">σ = ${highest.std.toFixed(2)} pp · intervalo ${highest.min.toFixed(1)}–${highest.max.toFixed(1)}%</div>
+    </div>
+  `;
+  grid.appendChild(highlight);
+
+  // ============================================================
+  //        ACURÁCIA VS. RESULTADO REAL (TSE)
+  // ============================================================
+  const accTitle = document.createElement('h3');
+  accTitle.className = 'stats-section-title';
+  accTitle.textContent = 'Acurácia vs. Resultado Real (TSE)';
+  body.appendChild(accTitle);
+
+  const accHint = document.createElement('p');
+  accHint.className = 'stats-section-hint';
+  accHint.innerHTML = `
+    Métricas estatístico-probabilísticas das pesquisas do instituto contra o resultado oficial do TSE no ${turnoLabel}.
+    <strong>MAE</strong> = erro absoluto médio · <strong>Viés</strong> = erro médio sinalizado (+ superestima / − subestima) ·
+    <strong>Calibração</strong> = % de pesquisas em que |erro| ≤ margem declarada.
+    Com margem de ±${s.margemModa != null ? s.margemModa.toFixed(1) : '—'} pp a 95% de confiança, pesquisas honestas deveriam calibrar em torno de 95%.
+  `;
+  body.appendChild(accHint);
+
+  if (s.accuracy.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'stats-empty';
+    empty.textContent = 'Não há dados reais do TSE para os candidatos deste turno.';
+    body.appendChild(empty);
+    return;
+  }
+
+  // Grid: tabela à esquerda, coluna de resumo + destaques à direita
+  const accGrid = document.createElement('div');
+  accGrid.className = 'acc-grid';
+  body.appendChild(accGrid);
+
+  const maxMae = Math.max(...s.accuracy.map(a => a.mae));
+  const accRows = s.accuracy.map(a => {
+    const pct = maxMae > 0 ? (a.mae / maxMae) * 100 : 0;
+    const color = colorByCandidato[a.candidato] || '#999';
+    const hitPct = a.hitRate != null ? (a.hitRate * 100).toFixed(0) + '%' : '—';
+    const biasCls = biasClass(a.bias);
+    return `
+      <tr>
+        <td class="name">
+          <span class="cdot" style="background:${color}"></span>
+          <span>${a.candidato}</span>
+        </td>
+        <td class="num">${a.real.toFixed(2)}%</td>
+        <td class="num">${a.mae.toFixed(2)}</td>
+        <td class="num ${biasCls}">${fmtSigned(a.bias, ' pp')}</td>
+        <td class="num">${a.rmse.toFixed(2)}</td>
+        <td class="num">${hitPct} <span class="hit-sub">(${a.hits}/${a.hitsTotal})</span></td>
+        <td><div class="bar" title="MAE / MAE_max = ${pct.toFixed(0)}%"><div class="bar-fill acc-bar" style="--pct:${pct.toFixed(1)}%"></div></div></td>
+        <td>${calibBadge(a.hitRate)}</td>
+      </tr>
+    `;
+  }).join('');
+
+  const accTableCard = document.createElement('div');
+  accTableCard.className = 'vol-table-card acc-table-card';
+  accTableCard.innerHTML = `
+    <table class="vol-table acc-table">
+      <thead>
+        <tr>
+          <th>Candidato</th>
+          <th class="num">Real (TSE)</th>
+          <th class="num">MAE (pp)</th>
+          <th class="num">Viés</th>
+          <th class="num">RMSE</th>
+          <th class="num">Calibração</th>
+          <th style="width:120px">Erro relativo</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>${accRows}</tbody>
+    </table>
+  `;
+  accGrid.appendChild(accTableCard);
+
+  // ---- Coluna lateral: resumo agregado + destaques ----
+  const accSide = document.createElement('div');
+  accSide.className = 'acc-side';
+  accGrid.appendChild(accSide);
+
+  // Resumo agregado do instituto (média dos candidatos)
+  const overallHitPct = s.overallHitRate != null ? (s.overallHitRate * 100).toFixed(0) + '%' : '—';
+  const overallCalibBucket = calibBucket(s.overallHitRate);
+  const overallSummary = document.createElement('div');
+  overallSummary.className = 'acc-overall';
+  overallSummary.innerHTML = `
+    <div class="acc-overall-label">Resumo do instituto</div>
+    <div class="acc-overall-metric">
+      <span class="acc-k">Erro médio geral (MAE)</span>
+      <span class="acc-v">${s.overallMae != null ? s.overallMae.toFixed(2) + ' pp' : '—'}</span>
+    </div>
+    <div class="acc-overall-metric">
+      <span class="acc-k">Viés médio</span>
+      <span class="acc-v ${biasClass(s.overallBias)}">${fmtSigned(s.overallBias, ' pp')}</span>
+      <span class="acc-sub">(${biasText(s.overallBias)})</span>
+    </div>
+    <div class="acc-overall-metric">
+      <span class="acc-k">Calibração geral</span>
+      <span class="acc-v">${overallHitPct}</span>
+      <span class="acc-sub">${s.totalHits}/${s.totalHitsN} dentro da margem</span>
+    </div>
+    <div class="acc-calib-bar calib-${overallCalibBucket}">
+      <div class="acc-calib-fill" style="--pct:${s.overallHitRate != null ? (s.overallHitRate * 100).toFixed(1) + '%' : '0%'}"></div>
+    </div>
+  `;
+  accSide.appendChild(overallSummary);
+
+  // Destaques: mais preciso + mais enviesado
+  const mostAccurate = s.accuracy[0];
+  const mostBiased = [...s.accuracy].sort((a, b) => Math.abs(b.bias) - Math.abs(a.bias))[0];
+  const accColorLow = colorByCandidato[mostAccurate.candidato] || '#999';
+  const accColorHigh = colorByCandidato[mostBiased.candidato] || '#999';
+  const biasDir = mostBiased.bias > 0 ? 'superestimado' : 'subestimado';
+
+  const accHighlights = document.createElement('div');
+  accHighlights.className = 'vol-highlight acc-highlights';
+  accHighlights.innerHTML = `
+    <div class="vol-hl-card low">
+      <div class="hl-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
+        Mais preciso
+      </div>
+      <div class="hl-candidate"><span class="cdot" style="background:${accColorLow}"></span>${mostAccurate.candidato}</div>
+      <div class="hl-value">MAE = ${mostAccurate.mae.toFixed(2)} pp · real ${mostAccurate.real.toFixed(2)}%</div>
+    </div>
+    <div class="vol-hl-card high">
+      <div class="hl-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M5 10l7-7 7 7"/></svg>
+        Mais enviesado
+      </div>
+      <div class="hl-candidate"><span class="cdot" style="background:${accColorHigh}"></span>${mostBiased.candidato}</div>
+      <div class="hl-value">${fmtSigned(mostBiased.bias, ' pp')} · ${biasDir} em média</div>
+    </div>
+  `;
+  accSide.appendChild(accHighlights);
+
+  // ============================================================
+  //        ÚLTIMA PESQUISA ANTES DA ELEIÇÃO
+  // ============================================================
+  if (s.lastPoll && s.lastPoll.erros.length > 0) {
+    const lastTitle = document.createElement('h3');
+    lastTitle.className = 'stats-section-title';
+    lastTitle.textContent = 'Última pesquisa antes do pleito';
+    body.appendChild(lastTitle);
+
+    const lastHint = document.createElement('p');
+    lastHint.className = 'stats-section-hint';
+    lastHint.innerHTML = `
+      O teste definitivo: a pesquisa mais próxima da urna tende a ser a mais divulgada e a mais julgada.
+      Aqui comparamos ponto a ponto com o resultado real do TSE.
+    `;
+    body.appendChild(lastHint);
+
+    const lp = s.lastPoll;
+    const dataFmt = new Date(lp.data + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const maxAbsLast = Math.max(...lp.erros.map(e => e.absDiff), 0.1);
+
+    const errosHtml = lp.erros.map(e => {
+      const color = colorByCandidato[e.candidato] || '#999';
+      const pct = (e.absDiff / maxAbsLast) * 100;
+      const dir = e.diff > 0 ? 'over' : e.diff < 0 ? 'under' : 'neutral';
+      return `
+        <div class="lp-row">
+          <div class="lp-name"><span class="cdot" style="background:${color}"></span>${e.candidato}</div>
+          <div class="lp-values">
+            <span class="lp-est">${e.est.toFixed(1)}%</span>
+            <span class="lp-arrow">→</span>
+            <span class="lp-real">${e.real.toFixed(2)}%</span>
+          </div>
+          <div class="lp-bar-wrap">
+            <div class="lp-bar bias-${dir}" style="--pct:${pct.toFixed(1)}%"></div>
+          </div>
+          <div class="lp-diff ${biasClass(e.diff)}">${fmtSigned(e.diff, ' pp')}</div>
+        </div>
+      `;
+    }).join('');
+
+    const lpCard = document.createElement('div');
+    lpCard.className = 'lp-card';
+    lpCard.innerHTML = `
+      <div class="lp-header">
+        <div>
+          <div class="lp-date">${dataFmt}</div>
+          <div class="lp-meta">${lp.diasAntes === 0 ? 'no dia da eleição' : `${lp.diasAntes} dia${lp.diasAntes === 1 ? '' : 's'} antes`} · ${lp.metodo || '—'} · ${lp.amostra != null ? lp.amostra.toLocaleString('pt-BR') + ' entrevistas' : '—'} · margem ±${lp.margem != null ? lp.margem.toFixed(1) : '—'} pp</div>
+        </div>
+        <div class="lp-mae">
+          <div class="lp-mae-label">MAE dessa pesquisa</div>
+          <div class="lp-mae-value">${lp.mae != null ? lp.mae.toFixed(2) + ' pp' : '—'}</div>
+        </div>
+      </div>
+      <div class="lp-rows">${errosHtml}</div>
+    `;
+    body.appendChild(lpCard);
+  }
+}
+
+function renderStats() {
+  const turno = state.statsTurno || 't1';
+  if (!state.statsInstituto) {
+    // Primeira abertura: pega o primeiro instituto com dados no turno atual
+    state.statsInstituto = institutos.find(i => computeInstitutoStats(i, turno) != null) || institutos[0];
+  }
+  renderInstPills(state.statsInstituto, (inst) => {
+    state.statsInstituto = inst;
+    renderStats();
+  }, turno);
+  renderStatsBody(state.statsInstituto, turno);
+}
+
+// ============================================================
 //                    Toggles dos headers
 // ============================================================
 document.querySelectorAll('#metodologia-toggle .seg').forEach(btn => {
@@ -1221,9 +1828,25 @@ document.querySelectorAll('#view-t2-toggle .seg').forEach(btn => {
   });
 });
 
+document.querySelectorAll('#stats-turno-toggle .seg').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#stats-turno-toggle .seg').forEach(b => b.classList.toggle('active', b === btn));
+    const newTurno = btn.dataset.turno;
+    if (state.statsTurno === newTurno) return;
+    state.statsTurno = newTurno;
+    // Se o instituto atual não tem dados no novo turno, pula para o primeiro disponível
+    const hasData = computeInstitutoStats(state.statsInstituto, newTurno) != null;
+    if (!hasData) {
+      state.statsInstituto = institutos.find(i => computeInstitutoStats(i, newTurno) != null) || institutos[0];
+    }
+    renderStats();
+  });
+});
+
 // ============================================================
 //                       INIT
 // ============================================================
 renderGeral();
 renderT1();
 renderT2();
+renderStats();
