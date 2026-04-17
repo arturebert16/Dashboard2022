@@ -129,6 +129,7 @@ const state = {
   viewT2: 'candidato',
   statsInstituto: null,
   statsTurno: 't1',
+  statsView: 'geral',
 };
 
 // ============================================================
@@ -1456,9 +1457,11 @@ function renderInstPills(activeInst, onSelect, turno) {
 }
 
 /**
- * Renderiza o corpo (perfil + volatilidade + acurácia) para o instituto selecionado.
+ * Dispatcher: renderiza o corpo da aba Estatísticas conforme o modo.
+ *   view = 'geral'  -> perfil médio + volatilidade + acurácia agregada
+ *   view = 'ultima' -> foco na pesquisa final antes do pleito daquele turno
  */
-function renderStatsBody(instName, turno) {
+function renderStatsBody(instName, turno, view) {
   const body = document.getElementById('stats-body');
   body.innerHTML = '';
   const s = computeInstitutoStats(instName, turno);
@@ -1467,6 +1470,18 @@ function renderStatsBody(instName, turno) {
     body.innerHTML = `<div class="stats-empty">Sem pesquisas de "${instName}" no ${turnoLabel}.</div>`;
     return;
   }
+  if (view === 'ultima') {
+    renderStatsUltima(body, instName, turno, s, turnoLabel);
+  } else {
+    renderStatsGeral(body, instName, turno, s, turnoLabel);
+  }
+}
+
+/**
+ * View "Geral" — perfil médio, volatilidade intra-instituto, acurácia
+ * agregada vs. TSE e summary da última pesquisa.
+ */
+function renderStatsGeral(body, instName, turno, s, turnoLabel) {
 
   // ---------- Perfil (cards de resumo) ----------
   const summary = document.createElement('div');
@@ -1788,8 +1803,193 @@ function renderStatsBody(instName, turno) {
   }
 }
 
+/**
+ * View "Última pesquisa" — foco no único poll mais próximo do pleito.
+ * Mostra perfil específico dessa pesquisa, comparação ponto-a-ponto com
+ * o real, badges de cobertura da margem, z-score e destaques.
+ */
+function renderStatsUltima(body, instName, turno, s, turnoLabel) {
+  const lp = s.lastPoll;
+  if (!lp || lp.erros.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'stats-empty';
+    empty.textContent = `"${instName}" não tem pesquisa registrada antes do ${turnoLabel}.`;
+    body.appendChild(empty);
+    return;
+  }
+
+  const dataFmt = new Date(lp.data + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+  const diasTxt = lp.diasAntes === 0 ? 'No dia da eleição' : `${lp.diasAntes} dia${lp.diasAntes === 1 ? '' : 's'} antes`;
+  const hitsDent = lp.erros.filter(e => lp.margem != null && e.absDiff <= lp.margem).length;
+  const totalCand = lp.erros.length;
+  const hitRate = totalCand > 0 ? hitsDent / totalCand : null;
+  const bias = lp.erros.reduce((sum, e) => sum + e.diff, 0) / lp.erros.length;
+  const rmse = Math.sqrt(lp.erros.reduce((sum, e) => sum + e.diff * e.diff, 0) / lp.erros.length);
+
+  // ---------- Perfil dessa pesquisa (3 cards específicos) ----------
+  const summary = document.createElement('div');
+  summary.className = 'stats-summary';
+  summary.innerHTML = `
+    <div class="stat-card accent-1">
+      <div class="stat-label"><span class="stat-icon">${ICO_METODO}</span>Data da pesquisa</div>
+      <div class="stat-value stat-value-sm">${dataFmt}</div>
+      <div class="stat-sub">${diasTxt} do ${turnoLabel}</div>
+    </div>
+    <div class="stat-card accent-2">
+      <div class="stat-label"><span class="stat-icon">${ICO_AMOSTRA}</span>Método &amp; amostra</div>
+      <div class="stat-value stat-value-sm">${lp.metodo || '—'}</div>
+      <div class="stat-sub">${lp.amostra != null ? lp.amostra.toLocaleString('pt-BR') + ' entrevistas' : '—'}</div>
+    </div>
+    <div class="stat-card accent-3">
+      <div class="stat-label"><span class="stat-icon">${ICO_MARGEM}</span>Margem &amp; MAE</div>
+      <div class="stat-value">± ${lp.margem != null ? lp.margem.toFixed(1) : '—'} pp</div>
+      <div class="stat-sub">MAE dessa pesquisa: <strong>${lp.mae != null ? lp.mae.toFixed(2) + ' pp' : '—'}</strong></div>
+    </div>
+  `;
+  body.appendChild(summary);
+
+  // ---------- Título ----------
+  const h = document.createElement('h3');
+  h.className = 'stats-section-title';
+  h.textContent = 'Desempenho ponto-a-ponto vs. TSE';
+  body.appendChild(h);
+  const hint = document.createElement('p');
+  hint.className = 'stats-section-hint';
+  hint.innerHTML = `
+    Comparação candidato-a-candidato entre <strong>${instName}</strong> em ${dataFmt} e o resultado oficial do TSE.
+    <strong>Erro</strong> = estimativa − real · <strong>Z-score</strong> ≈ |erro| ÷ (margem ÷ 1.96) — quantos "erros padrão" longe do real ·
+    <strong>P(&le; margem)</strong> = cobertura da margem declarada.
+  `;
+  body.appendChild(hint);
+
+  // ---------- Tabela detalhada ----------
+  const accGrid = document.createElement('div');
+  accGrid.className = 'acc-grid';
+  body.appendChild(accGrid);
+
+  const maxAbs = Math.max(...lp.erros.map(e => e.absDiff), 0.1);
+
+  const tableRows = lp.erros.map(e => {
+    const color = colorByCandidato[e.candidato] || '#999';
+    const pct = (e.absDiff / maxAbs) * 100;
+    const dir = e.diff > 0 ? 'over' : e.diff < 0 ? 'under' : 'neutral';
+    const within = lp.margem != null && e.absDiff <= lp.margem;
+    // Z-score aproximado: margem a 95% ≈ 1.96 σ → σ ≈ margem/1.96
+    const z = lp.margem != null && lp.margem > 0 ? e.absDiff / (lp.margem / 1.96) : null;
+    const zClass = z == null ? '' : (z <= 1.96 ? 'z-ok' : z <= 3 ? 'z-warn' : 'z-bad');
+    const relErr = e.real !== 0 ? (e.absDiff / e.real) * 100 : null;
+    const withinBadge = lp.margem == null
+      ? '<span class="badge badge-mid">—</span>'
+      : (within
+        ? '<span class="badge badge-low">Dentro</span>'
+        : '<span class="badge badge-high">Fora</span>');
+    return `
+      <tr>
+        <td class="name">
+          <span class="cdot" style="background:${color}"></span>
+          <span>${e.candidato}</span>
+        </td>
+        <td class="num">${e.est.toFixed(2)}%</td>
+        <td class="num">${e.real.toFixed(2)}%</td>
+        <td class="num ${biasClass(e.diff)}">${fmtSigned(e.diff, ' pp')}</td>
+        <td class="num">${relErr != null ? relErr.toFixed(1) + '%' : '—'}</td>
+        <td class="num ${zClass}">${z != null ? z.toFixed(2) : '—'}</td>
+        <td><div class="bar" title="erro / max = ${pct.toFixed(0)}%"><div class="bar-fill lp-bar bias-${dir}" style="--pct:${pct.toFixed(1)}%"></div></div></td>
+        <td>${withinBadge}</td>
+      </tr>
+    `;
+  }).join('');
+
+  const tableCard = document.createElement('div');
+  tableCard.className = 'vol-table-card acc-table-card';
+  tableCard.innerHTML = `
+    <table class="vol-table acc-table">
+      <thead>
+        <tr>
+          <th>Candidato</th>
+          <th class="num">Estimativa</th>
+          <th class="num">Real (TSE)</th>
+          <th class="num">Erro</th>
+          <th class="num">Erro rel.</th>
+          <th class="num">Z-score</th>
+          <th style="width:120px">Magnitude</th>
+          <th>P(&le; margem)</th>
+        </tr>
+      </thead>
+      <tbody>${tableRows}</tbody>
+    </table>
+  `;
+  accGrid.appendChild(tableCard);
+
+  // ---------- Coluna lateral: resumo + destaques ----------
+  const side = document.createElement('div');
+  side.className = 'acc-side';
+  accGrid.appendChild(side);
+
+  const hitPct = hitRate != null ? (hitRate * 100).toFixed(0) + '%' : '—';
+  const calibBuck = calibBucket(hitRate);
+  const overall = document.createElement('div');
+  overall.className = 'acc-overall';
+  overall.innerHTML = `
+    <div class="acc-overall-label">Resumo da pesquisa final</div>
+    <div class="acc-overall-metric">
+      <span class="acc-k">MAE</span>
+      <span class="acc-v">${lp.mae != null ? lp.mae.toFixed(2) + ' pp' : '—'}</span>
+    </div>
+    <div class="acc-overall-metric">
+      <span class="acc-k">RMSE</span>
+      <span class="acc-v">${rmse.toFixed(2)} pp</span>
+    </div>
+    <div class="acc-overall-metric">
+      <span class="acc-k">Viés</span>
+      <span class="acc-v ${biasClass(bias)}">${fmtSigned(bias, ' pp')}</span>
+      <span class="acc-sub">(${biasText(bias)})</span>
+    </div>
+    <div class="acc-overall-metric">
+      <span class="acc-k">Cobertura da margem</span>
+      <span class="acc-v">${hitPct}</span>
+      <span class="acc-sub">${hitsDent}/${totalCand} candidatos com |erro| ≤ ±${lp.margem != null ? lp.margem.toFixed(1) : '—'} pp</span>
+    </div>
+    <div class="acc-calib-bar calib-${calibBuck}">
+      <div class="acc-calib-fill" style="--pct:${hitRate != null ? (hitRate * 100).toFixed(1) + '%' : '0%'}"></div>
+    </div>
+  `;
+  side.appendChild(overall);
+
+  // Destaques
+  const erros = [...lp.erros].sort((a, b) => a.absDiff - b.absDiff);
+  const mostAccurate = erros[0];
+  const mostOff = erros[erros.length - 1];
+  const accColorLow = colorByCandidato[mostAccurate.candidato] || '#999';
+  const accColorHigh = colorByCandidato[mostOff.candidato] || '#999';
+  const offDir = mostOff.diff > 0 ? 'superestimado' : 'subestimado';
+
+  const highlights = document.createElement('div');
+  highlights.className = 'vol-highlight acc-highlights';
+  highlights.innerHTML = `
+    <div class="vol-hl-card low">
+      <div class="hl-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
+        Mais próximo do real
+      </div>
+      <div class="hl-candidate"><span class="cdot" style="background:${accColorLow}"></span>${mostAccurate.candidato}</div>
+      <div class="hl-value">|erro| = ${mostAccurate.absDiff.toFixed(2)} pp · ${mostAccurate.est.toFixed(1)}% vs. real ${mostAccurate.real.toFixed(2)}%</div>
+    </div>
+    <div class="vol-hl-card high">
+      <div class="hl-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h0"/><circle cx="12" cy="12" r="10"/></svg>
+        Mais distante do real
+      </div>
+      <div class="hl-candidate"><span class="cdot" style="background:${accColorHigh}"></span>${mostOff.candidato}</div>
+      <div class="hl-value">${fmtSigned(mostOff.diff, ' pp')} · ${offDir}</div>
+    </div>
+  `;
+  side.appendChild(highlights);
+}
+
 function renderStats() {
   const turno = state.statsTurno || 't1';
+  const view  = state.statsView  || 'geral';
   if (!state.statsInstituto) {
     // Primeira abertura: pega o primeiro instituto com dados no turno atual
     state.statsInstituto = institutos.find(i => computeInstitutoStats(i, turno) != null) || institutos[0];
@@ -1798,7 +1998,7 @@ function renderStats() {
     state.statsInstituto = inst;
     renderStats();
   }, turno);
-  renderStatsBody(state.statsInstituto, turno);
+  renderStatsBody(state.statsInstituto, turno, view);
 }
 
 // ============================================================
@@ -1839,6 +2039,16 @@ document.querySelectorAll('#stats-turno-toggle .seg').forEach(btn => {
     if (!hasData) {
       state.statsInstituto = institutos.find(i => computeInstitutoStats(i, newTurno) != null) || institutos[0];
     }
+    renderStats();
+  });
+});
+
+document.querySelectorAll('#stats-view-toggle .seg').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#stats-view-toggle .seg').forEach(b => b.classList.toggle('active', b === btn));
+    const newView = btn.dataset.view;
+    if (state.statsView === newView) return;
+    state.statsView = newView;
     renderStats();
   });
 });

@@ -738,6 +738,27 @@ body.has-fullscreen::before {
 }
 .inst-pill.disabled:hover { transform: none; background: var(--bg-2); }
 
+/* Stack vertical dos dois toggles (turno + view) no header da aba stats */
+.stats-toggles-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+/* Versão menor para data/método quando valor é textual (não numérico) */
+.stat-card .stat-value.stat-value-sm {
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.3px;
+  text-transform: capitalize;
+}
+
+/* Z-score coloring: ≤1.96 (95%CI) verde, ≤3 amarelo, >3 vermelho */
+.vol-table td.z-ok   { color: var(--c5); }
+.vol-table td.z-warn { color: var(--c4); }
+.vol-table td.z-bad  { color: var(--c2); }
+
 /* ============================================================
    ACURÁCIA VS. RESULTADO REAL (TSE)
    ============================================================ */
