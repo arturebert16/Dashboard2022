@@ -169,10 +169,14 @@ const baseGrid = {
 const baseTooltip = {
   theme: 'dark',
   x: { format: 'dd MMM yyyy' },
-  // intersect:false -> tooltip acompanha o ponto mais próximo, sem exigir
-  // que o cursor esteja exatamente em cima do marker.
-  intersect: false,
+  // intersect:true -> o tooltip só aparece quando o cursor está em cima de um
+  // marker da série (evita "puxar" dados da série vizinha quando há várias
+  // linhas sobrepostas). Combinado com markers.hover.size grande, o alvo é
+  // generoso o bastante para não ficar finicky.
+  intersect: true,
   shared: false,
+  followCursor: false,
+  hideEmptySeries: true,
 };
 
 const baseLegend = {
@@ -241,11 +245,8 @@ function buildCard(parent, opts) {
       <h3>${opts.title}</h3>
       <div class="chart-controls">
         ${chip}
-        <button class="icon-btn btn-reset" title="Reiniciar legenda (mostrar todas)">
+        <button class="icon-btn btn-reset" title="Reiniciar (legendas, zoom e linhas)">
           <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
-        </button>
-        <button class="icon-btn btn-y" title="Compactar eixo Y (zoom in)">
-          <svg viewBox="0 0 24 24"><path d="M12 4v16"/><path d="M7 9l5-5 5 5"/><path d="M7 15l5 5 5-5"/></svg>
         </button>
         <button class="icon-btn btn-fs" title="Tela cheia">
           <svg viewBox="0 0 24 24"><path d="M4 9V4h5"/><path d="M20 9V4h-5"/><path d="M4 15v5h5"/><path d="M20 15v5h-5"/></svg>
@@ -261,7 +262,6 @@ function buildCard(parent, opts) {
     chartEl: card.querySelector('.chart'),
     actionsEl: card.querySelector('.card-actions'),
     btnFs: card.querySelector('.btn-fs'),
-    btnY: card.querySelector('.btn-y'),
     btnReset: card.querySelector('.btn-reset'),
   };
 }
@@ -328,7 +328,7 @@ function applyFullscreen(card, chartEl, chart, on) {
 /**
  * Liga os controles do card ao chart (fullscreen, Y compacto, reset legenda)
  */
-function wireCardControls({ card, chartEl, btnFs, btnY, btnReset }, chart, ctx) {
+function wireCardControls({ card, chartEl, btnFs, btnReset }, chart, ctx) {
   // Fullscreen
   btnFs.addEventListener('click', () => {
     document.querySelectorAll('.card.fullscreen').forEach(c => {
@@ -360,58 +360,102 @@ function wireCardControls({ card, chartEl, btnFs, btnY, btnReset }, chart, ctx) 
     });
   }
 
-  // Y compactar (também restringe X a partir de 05/10)
-  btnY.addEventListener('click', () => {
-    ctx.yCompact = !ctx.yCompact;
-    btnY.classList.toggle('active', ctx.yCompact);
-    applyYRange(chart, ctx);
-  });
-
-  // Reset: legenda + zoom + Y-compact
+  // Reset: legenda + zoom + linhas-h clicadas
   btnReset.addEventListener('click', () => {
-    resetCardChart(chart, ctx, btnY);
+    resetCardChart(chart, ctx);
   });
 }
 
 /**
- * Reseta o card: mostra todas as séries, desativa Y-compact, volta o zoom
- * para a janela cheia e recomputa Y para todos os pontos.
+ * Reseta o card: mostra todas as séries, apaga as linhas horizontais clicadas,
+ * volta o zoom para a janela cheia e recomputa Y para todos os pontos.
  */
-function resetCardChart(chart, ctx, btnY, seriesFilter) {
+function resetCardChart(chart, ctx, seriesFilter) {
   // Legenda: mostra tudo (seriesFilter pode excluir HR-* para instituto card)
   chart.w.globals.seriesNames.forEach(n => {
     if (seriesFilter && !seriesFilter(n)) return;
     chart.showSeries(n);
   });
-  // Y-compact OFF + xaxis full + yaxis recomputado para a janela cheia
   if (ctx) {
-    ctx.yCompact = false;
-    if (btnY) btnY.classList.remove('active');
+    // Limpa linhas horizontais clicadas
+    ctx.hLines = [];
     const r = computeYInWindow(ctx.allPoints, JANELA_INI_MS, JANELA_FIM_MS, ctx.extraYValues || []);
     chart.updateOptions({
       xaxis: { ...(ctx.xaxisBase || {}), min: JANELA_INI_MS, max: JANELA_FIM_MS },
       yaxis: r ? { ...ctx.yaxisBase, min: r.min, max: r.max } : { ...ctx.yaxisBase },
+      annotations: {
+        xaxis: ctx.xAnnotations || [],
+        yaxis: (ctx.baseYAnnotations || []).slice(),
+      },
     }, false, false);
   }
 }
 
 /**
- * Aplica range X/Y conforme ctx.yCompact:
- *  - false: X = janela completa, Y = auto (recalculado pela visible window)
- *  - true:  X = a partir de COMPACT_INI, Y = min/max dos pontos nessa janela
+ * Cria uma anotação yaxis (linha horizontal tracejada) para um valor y clicado.
+ * Usa o formatter do eixo y, se disponível, para o label.
  */
-function applyYRange(chart, ctx) {
-  const compactIni = ctx.compactIniMs != null ? ctx.compactIniMs : COMPACT_INI_MS;
-  const xMin = ctx.yCompact ? compactIni : JANELA_INI_MS;
-  const xMax = JANELA_FIM_MS;
-  const r = ctx.yCompact
-    ? ctx.yRangeCompact
-    : computeYInWindow(ctx.allPoints, xMin, xMax, ctx.extraYValues || []);
-  if (!r) return;
+function buildHLineAnnotation(y, formatter) {
+  const txt = typeof formatter === 'function'
+    ? formatter(y)
+    : (typeof y === 'number' ? y.toFixed(2) : String(y));
+  return {
+    y,
+    borderColor: 'rgba(255,255,255,0.55)',
+    borderWidth: 1.5,
+    strokeDashArray: 4,
+    label: {
+      borderColor: 'transparent',
+      style: { color: '#fff', background: 'rgba(24,26,40,0.85)', fontFamily: 'Manrope', fontWeight: 700, fontSize: '10px' },
+      text: txt,
+      position: 'left',
+      offsetX: 60,
+    },
+  };
+}
+
+/**
+ * Refaz as anotações do gráfico combinando baseYAnnotations + hLines.
+ */
+function applyAnnotations(chart, ctx) {
+  const yAnns = (ctx.baseYAnnotations || []).slice();
+  (ctx.hLines || []).forEach(y => {
+    yAnns.push(buildHLineAnnotation(y, ctx.hLineFormatter));
+  });
   chart.updateOptions({
-    xaxis: { ...(ctx.xaxisBase || {}), min: xMin, max: xMax },
-    yaxis: { ...ctx.yaxisBase, min: r.min, max: r.max },
+    annotations: {
+      xaxis: ctx.xAnnotations || [],
+      yaxis: yAnns,
+    },
   }, false, false);
+}
+
+/**
+ * Handler do markerClick: toggle de linha horizontal no valor y clicado.
+ */
+function makeMarkerClickHandler(ctx) {
+  return function(event, chartContext, opts) {
+    const { seriesIndex, dataPointIndex } = opts;
+    if (seriesIndex == null || dataPointIndex == null || seriesIndex < 0 || dataPointIndex < 0) return;
+    const s = chartContext.w.config.series[seriesIndex];
+    if (!s || !s.data || !s.data[dataPointIndex]) return;
+    const p = s.data[dataPointIndex];
+    let y = null;
+    if (Array.isArray(p.y)) {
+      y = (p.y[0] + p.y[1]) / 2;
+    } else if (typeof p.y === 'number') {
+      y = p.y;
+    } else if (typeof p === 'number') {
+      y = p;
+    }
+    if (y == null) return;
+    ctx.hLines = ctx.hLines || [];
+    // Toggle: se já existe uma linha quase no mesmo y (~0.05), remove; senão adiciona
+    const idx = ctx.hLines.findIndex(v => Math.abs(v - y) < 0.05);
+    if (idx >= 0) ctx.hLines.splice(idx, 1);
+    else ctx.hLines.push(y);
+    applyAnnotations(chartContext, ctx);
+  };
 }
 
 /**
@@ -441,12 +485,10 @@ function computeYInWindow(points, xMin, xMax, extraValues = []) {
 /**
  * Handler do evento "zoomed" (toolbar nativo de zoomable timeseries).
  * Recalcula o Y range para caber nos pontos visíveis após o zoom.
- * Também é invocado no reset (retorna xaxis.min/max = undefined → janela cheia).
+ * Também é invocado no reset do toolbar (xaxis.min/max = undefined → janela cheia).
  */
 function makeZoomedHandler(ctx) {
   return function(chartContext, { xaxis }) {
-    // Se o user está com Y compactado, não mexe — deixa o range dele valer.
-    if (ctx.yCompact) return;
     const xMin = (xaxis && xaxis.min != null) ? xaxis.min : JANELA_INI_MS;
     const xMax = (xaxis && xaxis.max != null) ? xaxis.max : JANELA_FIM_MS;
     const r = computeYInWindow(ctx.allPoints, xMin, xMax, ctx.extraYValues || []);
@@ -580,14 +622,15 @@ function makeGeralLineCard(parent, title, chip, chipClass, series, electionLines
   // ctx criado ANTES da config para que o handler de "zoomed" capture a
   // referência correta (o handler lê ctx.allPoints/extraYValues em runtime).
   const ctx = {
-    yCompact: false,
-    yRangeFull: yRanges.full,
-    yRangeCompact: yRanges.compact,
     yaxisBase,
     xaxisBase,
     compactIniMs,
     allPoints,
     extraYValues: [],
+    xAnnotations,
+    baseYAnnotations: [],
+    hLines: [],
+    hLineFormatter: M.fmt,
   };
 
   const cfg = {
@@ -598,19 +641,20 @@ function makeGeralLineCard(parent, title, chip, chipClass, series, electionLines
       events: {
         legendClick: legendClickHandler(),
         zoomed: makeZoomedHandler(ctx),
+        markerClick: makeMarkerClickHandler(ctx),
       },
     },
     series,
     colors: series.map(s => s.color),
     stroke: { curve: 'smooth', width: 3 },
-    markers: { size: 4, strokeWidth: 0, hover: { size: 8, sizeOffset: 4 } },
+    markers: { size: 5, strokeWidth: 0, hover: { size: 10 } },
     grid: baseGrid,
     legend: { ...baseLegend, onItemClick: { toggleDataSeries: false } },
     dataLabels: { enabled: false },
     tooltip: { ...baseTooltip, y: { formatter: (v) => v == null ? '—' : M.fmt(v) } },
     xaxis: { ...xaxisBase, min: JANELA_INI_MS, max: JANELA_FIM_MS },
     yaxis: { ...yaxisBase, min: yRanges.full ? yRanges.full.min : undefined, max: yRanges.full ? yRanges.full.max : undefined },
-    annotations: { xaxis: xAnnotations },
+    annotations: { xaxis: xAnnotations, yaxis: [] },
   };
 
   const chart = new ApexCharts(ctrl.chartEl, cfg);
@@ -690,7 +734,7 @@ function realValueOutros(real) {
 // ============================================================
 //   Card de "candidato" (mantém line/rangeArea + nova UX)
 // ============================================================
-function candidateChartConfig(seriesByInst, realValue, mode, electionTurno, zoomedHandler) {
+function candidateChartConfig(seriesByInst, realValue, mode, electionTurno, zoomedHandler, markerClickHandler, hLines = []) {
   const realPoints = [
     { x: JANELA_INI_MS, y: realValue },
     { x: JANELA_FIM_MS, y: realValue },
@@ -740,6 +784,19 @@ function candidateChartConfig(seriesByInst, realValue, mode, electionTurno, zoom
     axisTicks: { color: '#262a40' },
   };
 
+  const baseRealAnnotation = {
+    y: realValue,
+    borderColor: 'rgba(255,255,255,0.25)',
+    borderWidth: 0,
+    label: {
+      borderColor: 'transparent',
+      style: { color: '#fff', background: 'rgba(255,255,255,0.08)', fontFamily: 'Manrope', fontWeight: 700 },
+      text: `Real: ${realValue.toFixed(2)}%`,
+      position: 'right',
+      offsetX: -8,
+    },
+  };
+
   return {
     cfg: {
       chart: {
@@ -749,6 +806,7 @@ function candidateChartConfig(seriesByInst, realValue, mode, electionTurno, zoom
         events: {
           legendClick: legendClickHandler(),
           ...(zoomedHandler ? { zoomed: zoomedHandler } : {}),
+          ...(markerClickHandler ? { markerClick: markerClickHandler } : {}),
         },
       },
       series,
@@ -756,7 +814,7 @@ function candidateChartConfig(seriesByInst, realValue, mode, electionTurno, zoom
       stroke: { curve: mode === 'line' ? 'smooth' : 'straight', width: strokeWidth, dashArray },
       dataLabels: { enabled: false },
       fill: mode === 'line' ? { type: 'solid', opacity: 1 } : { type: 'solid', opacity: fillOpacity },
-      markers: { size: mode === 'line' ? 4 : 0, strokeWidth: 0, hover: { size: 8, sizeOffset: 4 } },
+      markers: { size: mode === 'line' ? 5 : 0, strokeWidth: 0, hover: { size: 10 } },
       grid: baseGrid,
       legend: { ...baseLegend, onItemClick: { toggleDataSeries: false } },
       tooltip: {
@@ -773,18 +831,10 @@ function candidateChartConfig(seriesByInst, realValue, mode, electionTurno, zoom
       yaxis: { ...yaxisBase, min: yRanges.full ? yRanges.full.min : undefined, max: yRanges.full ? yRanges.full.max : undefined },
       annotations: {
         xaxis: [electionLineAnnotation(electionTurno)],
-        yaxis: [{
-          y: realValue,
-          borderColor: 'rgba(255,255,255,0.25)',
-          borderWidth: 0,
-          label: {
-            borderColor: 'transparent',
-            style: { color: '#fff', background: 'rgba(255,255,255,0.08)', fontFamily: 'Manrope', fontWeight: 700 },
-            text: `Real: ${realValue.toFixed(2)}%`,
-            position: 'right',
-            offsetX: -8,
-          },
-        }],
+        yaxis: [
+          baseRealAnnotation,
+          ...hLines.map(y => buildHLineAnnotation(y, (v) => v.toFixed(1) + '%')),
+        ],
       },
     },
     yRanges,
@@ -792,6 +842,7 @@ function candidateChartConfig(seriesByInst, realValue, mode, electionTurno, zoom
     xaxisBase,
     compactIniMs,
     allPoints,
+    baseYAnnotations: [baseRealAnnotation],
   };
 }
 
@@ -805,37 +856,37 @@ function createCandidateCard(parent, title, seriesByInst, realValue, electionTur
   // Botão extra: line ↔ rangeArea
   const btnRA = document.createElement('button');
   btnRA.className = 'btn-toggle';
-  btnRA.innerHTML = `<span class="icon"></span><span class="label">Mostrar margem de erro (Range Area)</span>`;
+  btnRA.innerHTML = `<span class="icon"></span><span class="label">Mostrar margem de erro</span>`;
   ctrl.actionsEl.appendChild(btnRA);
 
   let mode = 'line';
   let chart = null;
-  // ctx persistente — mutado a cada build() para que o handler zoomed (que
-  // captura a referência) sempre leia os valores atualizados.
+  // ctx persistente — mutado a cada build() para que os handlers (zoomed/
+  // markerClick) capturem uma referência estável (leem em runtime).
   const ctx = {
-    yCompact: false,
-    yRangeFull: null,
-    yRangeCompact: null,
     yaxisBase: null,
     xaxisBase: null,
     compactIniMs: compactIniFor([electionTurno]),
     allPoints: [],
     extraYValues: [realValue],
+    xAnnotations: [electionLineAnnotation(electionTurno)],
+    baseYAnnotations: [],
+    hLines: [],
+    hLineFormatter: (v) => v.toFixed(1) + '%',
   };
   const zoomedHandler = makeZoomedHandler(ctx);
+  const markerClickHandler = makeMarkerClickHandler(ctx);
 
   function build() {
-    const built = candidateChartConfig(seriesByInst, realValue, mode, electionTurno, zoomedHandler);
+    const built = candidateChartConfig(seriesByInst, realValue, mode, electionTurno, zoomedHandler, markerClickHandler, ctx.hLines);
     if (chart) chart.destroy();
     chart = new ApexCharts(ctrl.chartEl, built.cfg);
     chart.render();
-    ctx.yRangeFull = built.yRanges.full;
-    ctx.yRangeCompact = built.yRanges.compact;
     ctx.yaxisBase = built.yaxisBase;
     ctx.xaxisBase = built.xaxisBase;
     ctx.compactIniMs = built.compactIniMs;
     ctx.allPoints = built.allPoints;
-    if (ctx.yCompact) applyYRange(chart, ctx);
+    ctx.baseYAnnotations = built.baseYAnnotations;
   }
   build();
 
@@ -844,8 +895,8 @@ function createCandidateCard(parent, title, seriesByInst, realValue, electionTur
     mode = mode === 'line' ? 'rangeArea' : 'line';
     btnRA.classList.toggle('active', mode === 'rangeArea');
     btnRA.querySelector('.label').textContent = mode === 'line'
-      ? 'Mostrar margem de erro (Range Area)'
-      : 'Mostrar linha simples (Line)';
+      ? 'Mostrar margem de erro'
+      : 'Mostrar linha simples';
     build();
   });
 
@@ -864,13 +915,8 @@ function createCandidateCard(parent, title, seriesByInst, realValue, electionTur
       window.dispatchEvent(new Event('resize'));
     }, 60);
   });
-  ctrl.btnY.addEventListener('click', () => {
-    ctx.yCompact = !ctx.yCompact;
-    ctrl.btnY.classList.toggle('active', ctx.yCompact);
-    applyYRange(chart, ctx);
-  });
   ctrl.btnReset.addEventListener('click', () => {
-    resetCardChart(chart, ctx, ctrl.btnY);
+    resetCardChart(chart, ctx);
   });
 }
 
@@ -930,7 +976,7 @@ function createInstitutoCard(parent, instituto, polls, real, candidatos, electio
   // Toggle line ↔ rangeArea (margem de erro)
   const btnRA = document.createElement('button');
   btnRA.className = 'btn-toggle';
-  btnRA.innerHTML = `<span class="icon"></span><span class="label">Mostrar margem de erro (Range Area)</span>`;
+  btnRA.innerHTML = `<span class="icon"></span><span class="label">Mostrar margem de erro</span>`;
   ctrl.actionsEl.appendChild(btnRA);
 
   // Toggle linhas horizontais reais
@@ -943,16 +989,18 @@ function createInstitutoCard(parent, instituto, polls, real, candidatos, electio
   let showReal = false;
   let chart = null;
   const ctx = {
-    yCompact: false,
-    yRangeFull: yRanges.full,
-    yRangeCompact: yRanges.compact,
     yaxisBase,
     xaxisBase,
     compactIniMs,
     allPoints,
     extraYValues: realValues,
+    xAnnotations: [electionLineAnnotation(electionTurno)],
+    baseYAnnotations: [],
+    hLines: [],
+    hLineFormatter: (v) => v.toFixed(1) + '%',
   };
   const zoomedHandler = makeZoomedHandler(ctx);
+  const markerClickHandler = makeMarkerClickHandler(ctx);
 
   function build() {
     // Séries principais (por candidato)
@@ -1009,6 +1057,11 @@ function createInstitutoCard(parent, instituto, polls, real, candidatos, electio
         },
       }));
 
+    // baseYAnnotations = (linhas reais se visíveis). As linhas clicadas (hLines)
+    // são adicionadas por cima, e sobrevivem a rebuilds.
+    ctx.baseYAnnotations = yAnnotations;
+    const clickedAnn = (ctx.hLines || []).map(y => buildHLineAnnotation(y, ctx.hLineFormatter));
+
     const cfg = {
       chart: {
         ...baseChart,
@@ -1017,13 +1070,14 @@ function createInstitutoCard(parent, instituto, polls, real, candidatos, electio
         events: {
           legendClick: legendClickHandler(),
           zoomed: zoomedHandler,
+          markerClick: markerClickHandler,
         },
       },
       series: allSeries,
       colors,
       stroke: { curve: mode === 'line' ? 'smooth' : 'straight', width: strokeWidth, dashArray },
       fill: mode === 'line' ? { type: 'solid', opacity: 1 } : { type: 'solid', opacity: 0.35 },
-      markers: { size: mode === 'line' ? 4 : 0, strokeWidth: 0, hover: { size: 8, sizeOffset: 4 } },
+      markers: { size: mode === 'line' ? 5 : 0, strokeWidth: 0, hover: { size: 10 } },
       dataLabels: { enabled: false },
       grid: baseGrid,
       legend: {
@@ -1044,17 +1098,17 @@ function createInstitutoCard(parent, instituto, polls, real, candidatos, electio
       },
       xaxis: {
         ...xaxisBase,
-        min: ctx.yCompact ? compactIniMs : JANELA_INI_MS,
+        min: JANELA_INI_MS,
         max: JANELA_FIM_MS,
       },
       yaxis: {
         ...yaxisBase,
-        min: ctx.yCompact && yRanges.compact ? yRanges.compact.min : (yRanges.full ? yRanges.full.min : undefined),
-        max: ctx.yCompact && yRanges.compact ? yRanges.compact.max : (yRanges.full ? yRanges.full.max : undefined),
+        min: yRanges.full ? yRanges.full.min : undefined,
+        max: yRanges.full ? yRanges.full.max : undefined,
       },
       annotations: {
-        xaxis: [electionLineAnnotation(electionTurno)],
-        yaxis: yAnnotations,
+        xaxis: ctx.xAnnotations,
+        yaxis: [...yAnnotations, ...clickedAnn],
       },
     };
 
@@ -1069,8 +1123,8 @@ function createInstitutoCard(parent, instituto, polls, real, candidatos, electio
     mode = mode === 'line' ? 'rangeArea' : 'line';
     btnRA.classList.toggle('active', mode === 'rangeArea');
     btnRA.querySelector('.label').textContent = mode === 'line'
-      ? 'Mostrar margem de erro (Range Area)'
-      : 'Mostrar linha simples (Line)';
+      ? 'Mostrar margem de erro'
+      : 'Mostrar linha simples';
     build();
   });
 
@@ -1099,13 +1153,8 @@ function createInstitutoCard(parent, instituto, polls, real, candidatos, electio
       window.dispatchEvent(new Event('resize'));
     }, 60);
   });
-  ctrl.btnY.addEventListener('click', () => {
-    ctx.yCompact = !ctx.yCompact;
-    ctrl.btnY.classList.toggle('active', ctx.yCompact);
-    applyYRange(chart, ctx);
-  });
   ctrl.btnReset.addEventListener('click', () => {
-    resetCardChart(chart, ctx, ctrl.btnY, (n) => !n.startsWith('HR-'));
+    resetCardChart(chart, ctx, (n) => !n.startsWith('HR-'));
   });
 }
 
