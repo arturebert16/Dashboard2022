@@ -760,6 +760,222 @@ body.has-fullscreen::before {
 .vol-table td.z-bad  { color: var(--c2); }
 
 /* ============================================================
+   METODOLOGIA DE PONDERAÇÃO (Aba Geral — subseção)
+   ============================================================ */
+.panel-subheader {
+  margin: 32px 0 14px;
+  padding: 14px 18px;
+  background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--c6);
+  border-radius: 12px;
+}
+.panel-subheader .subsection-title {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--fg);
+}
+.panel-subheader .muted {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.metodologia-card .chart {
+  padding: 4px 6px 10px;
+}
+.metodologia-card .card-header .chip {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   DESEMPENHO POR VARIÁVEL DE PONDERAÇÃO (card do grid-geral)
+   ============================================================ */
+.performance-meto-card .performance-meto-toggle {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 6px 4px 10px;
+  padding: 4px;
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.performance-meto-card .performance-meto-toggle .seg {
+  font-size: 11px;
+  padding: 6px 12px;
+  border-radius: 7px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+.performance-meto-card .perf-meto-chip {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  text-transform: uppercase;
+  transition: background-color .18s ease, color .18s ease, border-color .18s ease;
+}
+.perf-meto-chart {
+  padding: 0 4px 4px;
+}
+/* Tooltip customizado do ranking */
+.apex-tip.perf-tip {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  padding: 10px 12px;
+  border-radius: 10px;
+  min-width: 220px;
+  max-width: 320px;
+  box-shadow: 0 10px 24px rgba(0,0,0,.35);
+  font-family: 'Manrope', sans-serif;
+}
+.perf-tip .perf-tip-rank {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--accent, #C73DB9);
+  background: rgba(199, 61, 185, 0.15);
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-bottom: 6px;
+}
+.perf-tip .perf-tip-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--fg);
+  margin-bottom: 6px;
+  line-height: 1.35;
+}
+.perf-tip .perf-tip-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--fg);
+  margin-top: 2px;
+}
+.perf-tip .perf-tip-row.muted { color: var(--muted); }
+.perf-tip .perf-tip-row span { color: var(--muted); }
+.perf-tip .perf-tip-row b { color: var(--fg); font-weight: 700; }
+
+/* ============================================================
+   PONDERAÇÃO (card compacto na aba Estatísticas)
+   ============================================================ */
+.pond-card {
+  background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px 20px 14px;
+  margin-bottom: 22px;
+  position: relative;
+  overflow: hidden;
+}
+.pond-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--c1), var(--c6), var(--c4), var(--c5));
+}
+
+.pond-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+.pond-rows {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px 22px;
+}
+@media (max-width: 860px) { .pond-rows { grid-template-columns: 1fr; } }
+
+.pond-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.03);
+}
+
+.pond-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pond-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.pond-icon svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pond-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.pond-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg);
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.pond-sub {
+  font-size: 10px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* "Não informado" — visualmente apagado */
+.pond-row.pond-ni .pond-value {
+  color: var(--muted);
+  font-weight: 500;
+  font-style: italic;
+}
+.pond-row.pond-ni .pond-icon {
+  opacity: 0.5;
+  filter: grayscale(0.6);
+}
+
+/* ============================================================
    ACURÁCIA VS. RESULTADO REAL (TSE)
    ============================================================ */
 .acc-grid {

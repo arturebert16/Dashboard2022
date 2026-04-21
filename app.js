@@ -682,6 +682,362 @@ function renderGeral() {
   makeGeralLineCard(parent, `${M.label} médio (1° + 2° turno)`, 'Média', 'chip', buildScoreSeriesMedia(state.metodologia), ['t1','t2']);
   makeGeralLineCard(parent, `${M.label} — 1° Turno`, '1° Turno', 'chip-1', buildScoreSeries(polls1, real1, CANDIDATOS_T1, state.metodologia), ['t1']);
   makeGeralLineCard(parent, `${M.label} — 2° Turno`, '2° Turno', 'chip-2', buildScoreSeries(polls2, real2, CANDIDATOS_T2, state.metodologia), ['t2']);
+
+  // Chart 4 — Desempenho por variável de ponderação (ocupa o 4º slot do grid 2x2)
+  makePerformanceByMetodologiaCard(parent);
+}
+
+// ============================================================
+//       METODOLOGIA DE PONDERAÇÃO (Geral) — bar charts
+// ============================================================
+const METODOLOGIA_FIELDS = [
+  { key: 'faixa_etaria',     label: 'Faixa etária',        color: '#C73DB9' }, // c1
+  { key: 'escolaridade',     label: 'Escolaridade',        color: '#00BAC6' }, // c6
+  { key: 'renda_domiciliar', label: 'Renda domiciliar',    color: '#F1B01B' }, // c4
+  { key: 'fonte_ponderacao', label: 'Fonte de ponderação', color: '#53C373' }, // c5
+];
+
+/** Retorna [[valor, contagem], ...] desc, ignorando "Não informado" e nulls. */
+function countMetodologia(field) {
+  const allPolls = [...polls1, ...polls2];
+  const counts = {};
+  allPolls.forEach(p => {
+    const v = p[field];
+    if (!v || v === 'Não informado') return;
+    counts[v] = (counts[v] || 0) + 1;
+  });
+  return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+}
+
+/** Trunca string longa preservando o início informativo. */
+function truncLabel(s, max) {
+  if (!s) return '';
+  return s.length > max ? s.slice(0, max - 1) + '…' : s;
+}
+
+/** Cria um card com chart de barras horizontais para um field metodológico. */
+function makeMetodologiaBarCard(parent, fieldCfg) {
+  const counts = countMetodologia(fieldCfg.key);
+  const card = document.createElement('div');
+  card.className = 'card metodologia-card';
+  card.innerHTML = `
+    <div class="card-header">
+      <h3>${fieldCfg.label}</h3>
+      <span class="chip chip-real" style="background: ${fieldCfg.color}22; color: ${fieldCfg.color}; border-color: ${fieldCfg.color}55;">
+        ${counts.reduce((s, c) => s + c[1], 0)} pesquisas
+      </span>
+    </div>
+    <div class="chart"></div>
+  `;
+  parent.appendChild(card);
+
+  if (counts.length === 0) {
+    card.querySelector('.chart').innerHTML = `<div class="stats-empty">Sem pesquisas com esse campo preenchido.</div>`;
+    return;
+  }
+
+  // Aumenta a altura com base na quantidade de categorias (mín 200, máx 440)
+  const height = Math.max(200, Math.min(440, 70 + counts.length * 42));
+
+  const categories = counts.map(c => truncLabel(c[0], 54));
+  const values = counts.map(c => c[1]);
+  const fullLabels = counts.map(c => c[0]);
+
+  const options = {
+    chart: {
+      type: 'bar',
+      height,
+      background: 'transparent',
+      fontFamily: 'Manrope, sans-serif',
+      toolbar: { show: false },
+      animations: { enabled: false },
+    },
+    plotOptions: {
+      bar: {
+        horizontal: true,
+        borderRadius: 6,
+        borderRadiusApplication: 'end',
+        barHeight: '68%',
+        distributed: false,
+        dataLabels: { position: 'center' },
+      },
+    },
+    colors: [fieldCfg.color],
+    series: [{ name: 'Pesquisas', data: values }],
+    dataLabels: {
+      enabled: true,
+      textAnchor: 'middle',
+      style: {
+        colors: ['#ffffff'],
+        fontFamily: 'Manrope, sans-serif',
+        fontSize: '11px',
+        fontWeight: 700,
+      },
+      dropShadow: { enabled: false },
+      formatter: (v) => v,
+    },
+    xaxis: {
+      categories,
+      labels: {
+        style: { colors: '#8b90a8', fontSize: '10px', fontFamily: 'Manrope, sans-serif' },
+        formatter: (v) => Number.isInteger(+v) ? v : Math.round(+v),
+      },
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+    },
+    yaxis: {
+      labels: {
+        style: { colors: '#c0c4d6', fontSize: '11px', fontFamily: 'Manrope, sans-serif' },
+        maxWidth: 320,
+      },
+    },
+    grid: {
+      borderColor: 'rgba(255,255,255,0.05)',
+      strokeDashArray: 4,
+      padding: { top: 0, right: 16, bottom: 0, left: 8 },
+      xaxis: { lines: { show: true } },
+      yaxis: { lines: { show: false } },
+    },
+    tooltip: {
+      theme: 'dark',
+      y: {
+        title: {
+          formatter: (_, opts) => fullLabels[opts.dataPointIndex],
+        },
+        formatter: (v) => `${v} pesquisa${v === 1 ? '' : 's'}`,
+      },
+    },
+    legend: { show: false },
+  };
+
+  const chart = new ApexCharts(card.querySelector('.chart'), options);
+  chart.render();
+}
+
+/** Renderiza os 4 bar charts de metodologia na aba Geral. */
+function renderMetodologiaGeral() {
+  const parent = document.getElementById('grid-metodologia');
+  if (!parent) return;
+  parent.innerHTML = '';
+  METODOLOGIA_FIELDS.forEach(f => makeMetodologiaBarCard(parent, f));
+}
+
+// ============================================================
+//   DESEMPENHO POR VARIÁVEL DE PONDERAÇÃO (Geral) — vertical bar
+// ============================================================
+
+/**
+ * Agrupa pesquisas T1+T2 pelo valor do campo metodológico informado
+ * e retorna [{ value, avg, n }] ordenado do MELHOR para o PIOR,
+ * conforme a metodologia atual (higherBetter true/false).
+ * Ignora pesquisas com valor "Não informado" ou vazio.
+ */
+function computePerformanceByField(field, metodologiaKey) {
+  const M = METODOLOGIAS[metodologiaKey];
+  const groups = {};
+  const push = (value, score) => {
+    (groups[value] = groups[value] || []).push(score);
+  };
+  polls1.forEach(p => {
+    const v = p[field];
+    if (!v || v === 'Não informado') return;
+    const s = M.compute(p, real1, CANDIDATOS_T1);
+    if (s == null) return;
+    push(v, s);
+  });
+  polls2.forEach(p => {
+    const v = p[field];
+    if (!v || v === 'Não informado') return;
+    const s = M.compute(p, real2, CANDIDATOS_T2);
+    if (s == null) return;
+    push(v, s);
+  });
+  const entries = Object.entries(groups).map(([value, scores]) => ({
+    value,
+    avg: scores.reduce((a, b) => a + b, 0) / scores.length,
+    n: scores.length,
+  }));
+  entries.sort((a, b) => M.higherBetter ? b.avg - a.avg : a.avg - b.avg);
+  return entries;
+}
+
+/**
+ * Cria o card "Desempenho por variável de ponderação" com seletor das 4
+ * variáveis e gráfico de barras verticais ranqueando os valores.
+ * É recriado a cada renderGeral() para respeitar a metodologia atual.
+ */
+function makePerformanceByMetodologiaCard(parent) {
+  const card = document.createElement('div');
+  card.className = 'card turno-card performance-meto-card';
+  card.innerHTML = `
+    <div class="card-header">
+      <h3>Desempenho por variável de ponderação</h3>
+      <span class="chip chip-real perf-meto-chip">Ranking</span>
+    </div>
+    <div class="seg-toggle performance-meto-toggle" role="tablist">
+      <button class="seg active" data-field="faixa_etaria">Faixa etária</button>
+      <button class="seg" data-field="escolaridade">Escolaridade</button>
+      <button class="seg" data-field="renda_domiciliar">Renda</button>
+      <button class="seg" data-field="fonte_ponderacao">Fonte</button>
+    </div>
+    <div class="chart perf-meto-chart"></div>
+  `;
+  parent.appendChild(card);
+
+  let currentField = 'faixa_etaria';
+  let chart = null;
+
+  const chartEl = card.querySelector('.chart');
+
+  function render() {
+    const M = METODOLOGIAS[state.metodologia];
+    const entries = computePerformanceByField(currentField, state.metodologia);
+    const fieldCfg = METODOLOGIA_FIELDS.find(f => f.key === currentField);
+    const color = fieldCfg ? fieldCfg.color : '#C73DB9';
+
+    // Atualiza o chip com a contagem de pesquisas válidas
+    const totalPolls = entries.reduce((s, e) => s + e.n, 0);
+    const chip = card.querySelector('.perf-meto-chip');
+    chip.textContent = `${totalPolls} pesquisas · ${M.higherBetter ? 'maior = melhor' : 'menor = melhor'}`;
+    chip.style.background = color + '22';
+    chip.style.color = color;
+    chip.style.borderColor = color + '55';
+
+    if (chart) { chart.destroy(); chart = null; }
+    chartEl.innerHTML = '';
+
+    if (entries.length === 0) {
+      chartEl.innerHTML = `<div class="stats-empty">Sem pesquisas para essa variável.</div>`;
+      return;
+    }
+
+    // Labels: truncamos para caber rotacionados no eixo X.
+    // Quanto mais barras, mais curto o rótulo; rotação também fica mais vertical.
+    const n = entries.length;
+    const labelMax = n <= 3 ? 30 : n <= 5 ? 22 : 18;
+    const rotateDeg = n <= 3 ? -15 : n <= 5 ? -28 : -40;
+    const categories = entries.map(e => truncLabel(e.value, labelMax));
+    const fullLabels = entries.map(e => e.value);
+    const values = entries.map(e => +e.avg.toFixed(2));
+    const counts = entries.map(e => e.n);
+
+    const height = 380;
+
+    const options = {
+      chart: {
+        type: 'bar',
+        height,
+        background: 'transparent',
+        fontFamily: 'Manrope, sans-serif',
+        toolbar: { show: false },
+        animations: { enabled: false },
+      },
+      plotOptions: {
+        bar: {
+          horizontal: false,
+          borderRadius: 6,
+          borderRadiusApplication: 'end',
+          columnWidth: '62%',
+          distributed: false,
+          dataLabels: { position: 'top' },
+        },
+      },
+      colors: [color],
+      series: [{ name: M.yLabel, data: values }],
+      dataLabels: {
+        enabled: true,
+        formatter: (v) => M.fmt(v),
+        offsetY: -20,
+        style: {
+          colors: ['#c0c4d6'],
+          fontFamily: 'Manrope, sans-serif',
+          fontSize: '11px',
+          fontWeight: 700,
+        },
+        dropShadow: { enabled: false },
+      },
+      xaxis: {
+        categories,
+        labels: {
+          style: { colors: '#c0c4d6', fontSize: '10px', fontFamily: 'Manrope, sans-serif' },
+          rotate: rotateDeg,
+          rotateAlways: true,
+          hideOverlappingLabels: false,
+          trim: false,
+          maxHeight: 110,
+        },
+        axisBorder: { color: '#262a40' },
+        axisTicks: { color: '#262a40' },
+      },
+      yaxis: {
+        labels: {
+          style: { colors: '#8b90a8', fontSize: '10px', fontFamily: 'Manrope, sans-serif' },
+          formatter: (v) => M.fmtAxis(+v),
+        },
+        title: { text: M.yLabel, style: { color: '#5d6280', fontFamily: 'Manrope', fontWeight: 600 } },
+      },
+      grid: {
+        ...baseGrid,
+        padding: { top: 30, right: 16, bottom: 80, left: 8 },
+      },
+      tooltip: {
+        theme: 'dark',
+        custom: ({ dataPointIndex }) => {
+          const v = values[dataPointIndex];
+          const n = counts[dataPointIndex];
+          const lbl = fullLabels[dataPointIndex];
+          const rank = dataPointIndex + 1;
+          return `<div class="apex-tip perf-tip">
+            <div class="perf-tip-rank">#${rank}</div>
+            <div class="perf-tip-label">${lbl}</div>
+            <div class="perf-tip-row"><span>${M.label}:</span><b>${M.fmt(v)}</b></div>
+            <div class="perf-tip-row muted"><span>Pesquisas:</span><b>${n}</b></div>
+          </div>`;
+        },
+      },
+      legend: { show: false },
+    };
+
+    chart = new ApexCharts(chartEl, options);
+    chart.render();
+  }
+
+  // Wire toggle
+  card.querySelectorAll('.performance-meto-toggle .seg').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.classList.contains('active')) return;
+      card.querySelectorAll('.performance-meto-toggle .seg').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentField = btn.dataset.field;
+      render();
+    });
+  });
+
+  render();
+}
+
+/** Quebra um rótulo longo em até N linhas de ~maxPerLine chars cada. */
+function wrapLabelLines(s, maxPerLine, maxLines) {
+  if (!s) return [''];
+  if (s.length <= maxPerLine) return [s];
+  const words = s.split(/\s+/);
+  const lines = [];
+  let cur = '';
+  for (const w of words) {
+    if (!cur) { cur = w; continue; }
+    if ((cur + ' ' + w).length <= maxPerLine) cur += ' ' + w;
+    else { lines.push(cur); cur = w; if (lines.length === maxLines - 1) break; }
+  }
+  if (cur && lines.length < maxLines) lines.push(cur);
+  // Se sobrou texto, adiciona reticências na última linha
+  const usedLen = lines.join(' ').length;
+  if (usedLen < s.length - 1) {
+    const last = lines[lines.length - 1];
+    lines[lines.length - 1] = last.length + 1 > maxPerLine
+      ? last.slice(0, maxPerLine - 1) + '…'
+      : last + '…';
+  }
+  return lines;
 }
 
 // ============================================================
@@ -1346,6 +1702,22 @@ function computeInstitutoStats(instName, turno) {
     };
   }
 
+  // ------- Metodologia de ponderação (moda por campo) -------
+  // Para cada um dos 4 campos novos, pega o valor mais frequente entre as
+  // pesquisas do instituto. "Não informado" é preservado (significa que o
+  // instituto não divulgou essa informação).
+  const ponderacao = {};
+  ['faixa_etaria', 'escolaridade', 'renda_domiciliar', 'fonte_ponderacao'].forEach(field => {
+    const c = {};
+    allPolls.forEach(p => {
+      const v = p[field];
+      if (!v) return;
+      c[v] = (c[v] || 0) + 1;
+    });
+    const entries = Object.entries(c).sort((a, b) => b[1] - a[1]);
+    ponderacao[field] = entries.length ? { value: entries[0][0], count: entries[0][1], unique: entries.length === 1 } : null;
+  });
+
   return {
     turno,
     numPolls: allPolls.length,
@@ -1356,6 +1728,7 @@ function computeInstitutoStats(instName, turno) {
     accuracy,
     overallMae, overallBias, overallHitRate, totalHits, totalHitsN,
     lastPoll,
+    ponderacao,
   };
 }
 
@@ -1414,6 +1787,71 @@ function biasText(v) {
   if (v == null || isNaN(v)) return '—';
   if (Math.abs(v) < 0.25) return 'praticamente neutro';
   return v > 0 ? 'tende a superestimar' : 'tende a subestimar';
+}
+
+// Ícones SVG compactos para as 4 variáveis metodológicas
+const ICO_IDADE = `<svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg>`;
+const ICO_ESCOLA = `<svg viewBox="0 0 24 24"><path d="M2 10l10-5 10 5-10 5-10-5z"/><path d="M6 12v5c0 1 3 2 6 2s6-1 6-2v-5"/></svg>`;
+const ICO_RENDA = `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 9.5a3 3 0 0 0-6 0c0 1.5 1.5 2 3 2.5s3 1 3 2.5a3 3 0 0 1-6 0"/><path d="M12 6v2M12 16v2"/></svg>`;
+const ICO_FONTE = `<svg viewBox="0 0 24 24"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M9 12h6M9 16h6"/></svg>`;
+
+const METODOLOGIA_ICONS = {
+  faixa_etaria:     { icon: ICO_IDADE,  label: 'Faixa etária',        color: 'var(--c1)' },
+  escolaridade:     { icon: ICO_ESCOLA, label: 'Escolaridade',        color: 'var(--c6)' },
+  renda_domiciliar: { icon: ICO_RENDA,  label: 'Renda domiciliar',    color: 'var(--c4)' },
+  fonte_ponderacao: { icon: ICO_FONTE,  label: 'Fonte de ponderação', color: 'var(--c5)' },
+};
+
+/**
+ * Monta o HTML de um card "Metodologia de ponderação" para a aba Estatísticas.
+ *   source: objeto com as 4 chaves (faixa_etaria, escolaridade, renda_domiciliar, fonte_ponderacao).
+ *     - Modo Geral: s.ponderacao[k] = { value, count, unique }
+ *     - Modo Última: pega direto do poll (poll.faixa_etaria etc)
+ *   mode: 'moda' | 'poll' — controla o subtítulo explicativo.
+ */
+function buildPonderacaoCard(source, mode, numPolls) {
+  const isModa = mode === 'moda';
+  const rowsHtml = Object.entries(METODOLOGIA_ICONS).map(([key, cfg]) => {
+    let value, sub;
+    if (isModa) {
+      const entry = source && source[key];
+      if (!entry) {
+        value = '—';
+        sub = 'sem dado';
+      } else {
+        value = entry.value;
+        if (entry.unique) {
+          sub = `todas as ${numPolls} pesquisa${numPolls === 1 ? '' : 's'}`;
+        } else {
+          sub = `valor mais frequente (${entry.count}/${numPolls})`;
+        }
+      }
+    } else {
+      value = source && source[key] ? source[key] : '—';
+      sub = null;
+    }
+    const naoInformado = value === 'Não informado';
+    return `
+      <div class="pond-row ${naoInformado ? 'pond-ni' : ''}">
+        <div class="pond-head">
+          <span class="pond-icon" style="color: ${cfg.color}; background: ${cfg.color}22;">${cfg.icon}</span>
+          <span class="pond-label">${cfg.label}</span>
+        </div>
+        <div class="pond-value">${value}</div>
+        ${sub ? `<div class="pond-sub">${sub}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="pond-card">
+      <div class="pond-card-title">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M6 12h12M10 18h4"/></svg>
+        Metodologia de ponderação
+      </div>
+      <div class="pond-rows">${rowsHtml}</div>
+    </div>
+  `;
 }
 
 // Ícones SVG para os stat cards
@@ -1513,6 +1951,11 @@ function renderStatsGeral(body, instName, turno, s, turnoLabel) {
     </div>
   `;
   body.appendChild(summary);
+
+  // ---------- Metodologia de ponderação (4 campos) ----------
+  const pondWrap = document.createElement('div');
+  pondWrap.innerHTML = buildPonderacaoCard(s.ponderacao, 'moda', s.numPolls);
+  body.appendChild(pondWrap.firstElementChild);
 
   // ---------- Título da seção ----------
   const h = document.createElement('h3');
@@ -1818,6 +2261,11 @@ function renderStatsUltima(body, instName, turno, s, turnoLabel) {
     return;
   }
 
+  // Precisamos do poll bruto para extrair os 4 campos metodológicos daquela
+  // pesquisa específica (lp.erros só tem os erros por candidato).
+  const sourcePolls = turno === 't2' ? polls2 : polls1;
+  const rawLastPoll = sourcePolls.find(p => p.instituto === instName && p.data === lp.data) || {};
+
   const dataFmt = new Date(lp.data + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
   const diasTxt = lp.diasAntes === 0 ? 'No dia da eleição' : `${lp.diasAntes} dia${lp.diasAntes === 1 ? '' : 's'} antes`;
   const hitsDent = lp.erros.filter(e => lp.margem != null && e.absDiff <= lp.margem).length;
@@ -1847,6 +2295,11 @@ function renderStatsUltima(body, instName, turno, s, turnoLabel) {
     </div>
   `;
   body.appendChild(summary);
+
+  // ---------- Metodologia dessa pesquisa ----------
+  const pondWrap = document.createElement('div');
+  pondWrap.innerHTML = buildPonderacaoCard(rawLastPoll, 'poll');
+  body.appendChild(pondWrap.firstElementChild);
 
   // ---------- Título ----------
   const h = document.createElement('h3');
@@ -2057,6 +2510,7 @@ document.querySelectorAll('#stats-view-toggle .seg').forEach(btn => {
 //                       INIT
 // ============================================================
 renderGeral();
+renderMetodologiaGeral();
 renderT1();
 renderT2();
 renderStats();

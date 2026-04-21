@@ -7,6 +7,10 @@ window.DASH_DATA = {
       "amostra": 7500,
       "metodo": "Web",
       "margem_erro": 1.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (3 níveis): Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (5 faixas): até R$2k, R$2-3k, R$3-5k, R$5-10k, R$10k+",
+      "fonte_ponderacao": "PNADC 2021 (escolaridade e renda) + TSE 2022 (sexo e idade)",
       "estimativas": {
         "Lula": 49.2,
         "Jair Bolsonaro": 40.3,
@@ -21,6 +25,10 @@ window.DASH_DATA = {
       "amostra": 7500,
       "metodo": "Web",
       "margem_erro": 1.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (3 níveis): Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (5 faixas): até R$2k, R$2-3k, R$3-5k, R$5-10k, R$10k+",
+      "fonte_ponderacao": "PNADC 2021 (escolaridade e renda) + TSE 2022 (sexo e idade)",
       "estimativas": {
         "Lula": 49.7,
         "Jair Bolsonaro": 39.7,
@@ -35,6 +43,10 @@ window.DASH_DATA = {
       "amostra": 4500,
       "metodo": "Web",
       "margem_erro": 1.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (3 níveis): Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (5 faixas): até R$2k, R$2-3k, R$3-5k, R$5-10k, R$10k+",
+      "fonte_ponderacao": "PNADC 2021 (escolaridade e renda) + TSE 2022 (sexo e idade)",
       "estimativas": {
         "Lula": 49.5,
         "Jair Bolsonaro": 42.0,
@@ -49,6 +61,10 @@ window.DASH_DATA = {
       "amostra": 4500,
       "metodo": "Web",
       "margem_erro": 1.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (3 níveis): Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (5 faixas): até R$2k, R$2-3k, R$3-5k, R$5-10k, R$10k+",
+      "fonte_ponderacao": "PNADC 2021 (escolaridade e renda) + TSE 2022 (sexo e idade)",
       "estimativas": {
         "Lula": 50.7,
         "Jair Bolsonaro": 41.0,
@@ -63,6 +79,10 @@ window.DASH_DATA = {
       "amostra": 4500,
       "metodo": "Web",
       "margem_erro": 1.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (3 níveis): Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (5 faixas): até R$2k, R$2-3k, R$3-5k, R$5-10k, R$10k+",
+      "fonte_ponderacao": "PNADC 2021 (escolaridade e renda) + TSE 2022 (sexo e idade)",
       "estimativas": {
         "Lula": 50.3,
         "Jair Bolsonaro": 41.1,
@@ -77,6 +97,10 @@ window.DASH_DATA = {
       "amostra": 2676,
       "metodo": "Fluxo",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (2 níveis): até Médio, Superior",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "TSE julho/2022 + IBGE (PNAD 2019 e Estimativa 2021)",
       "estimativas": {
         "Lula": 48.9,
         "Jair Bolsonaro": 37.0,
@@ -91,6 +115,10 @@ window.DASH_DATA = {
       "amostra": 5926,
       "metodo": "Fluxo",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (2 níveis): até Médio, Superior",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "TSE julho/2022 + IBGE (PNAD 2019 e Estimativa 2021)",
       "estimativas": {
         "Lula": 48.4,
         "Jair Bolsonaro": 35.5,
@@ -105,6 +133,10 @@ window.DASH_DATA = {
       "amostra": 6754,
       "metodo": "Fluxo",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (2 níveis): até Médio, Superior",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "TSE julho/2022 + IBGE (PNAD 2019 e Estimativa 2021)",
       "estimativas": {
         "Lula": 50.5,
         "Jair Bolsonaro": 35.5,
@@ -119,6 +151,10 @@ window.DASH_DATA = {
       "amostra": 6800,
       "metodo": "Fluxo",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (2 níveis): até Médio, Superior",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "TSE julho/2022 + IBGE (PNAD 2019 e Estimativa 2021)",
       "estimativas": {
         "Lula": 50.5,
         "Jair Bolsonaro": 35.8,
@@ -133,6 +169,10 @@ window.DASH_DATA = {
       "amostra": 12800,
       "metodo": "Fluxo",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (2 níveis): até Médio, Superior",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "TSE julho/2022 + IBGE (PNAD 2019 e Estimativa 2021)",
       "estimativas": {
         "Lula": 50.5,
         "Jair Bolsonaro": 35.8,
@@ -147,6 +187,10 @@ window.DASH_DATA = {
       "amostra": 2000,
       "metodo": "Fone",
       "margem_erro": 2.2,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (8 níveis: de analfabeto a superior completo)",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "IBGE Censo 2010 + TSE julho/2022",
       "estimativas": {
         "Lula": 41.3,
         "Jair Bolsonaro": 44.9,
@@ -161,6 +205,10 @@ window.DASH_DATA = {
       "amostra": 2000,
       "metodo": "Fone",
       "margem_erro": 2.2,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (8 níveis: de analfabeto a superior completo)",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "IBGE Censo 2010 + TSE julho/2022",
       "estimativas": {
         "Lula": 39.4,
         "Jair Bolsonaro": 46.1,
@@ -175,6 +223,10 @@ window.DASH_DATA = {
       "amostra": 2000,
       "metodo": "Fone",
       "margem_erro": 2.2,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (8 níveis: de analfabeto a superior completo)",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "IBGE Censo 2010 + TSE julho/2022",
       "estimativas": {
         "Lula": 40.0,
         "Jair Bolsonaro": 45.4,
@@ -189,6 +241,10 @@ window.DASH_DATA = {
       "amostra": 2000,
       "metodo": "Fone",
       "margem_erro": 2.2,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (8 níveis: de analfabeto a superior completo)",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "IBGE Censo 2010 + TSE julho/2022",
       "estimativas": {
         "Lula": 43.0,
         "Jair Bolsonaro": 43.1,
@@ -203,6 +259,10 @@ window.DASH_DATA = {
       "amostra": 2000,
       "metodo": "Fone",
       "margem_erro": 2.2,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (8 níveis: de analfabeto a superior completo)",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "IBGE Censo 2010 + TSE julho/2022",
       "estimativas": {
         "Lula": 43.6,
         "Jair Bolsonaro": 40.5,
@@ -217,6 +277,10 @@ window.DASH_DATA = {
       "amostra": 2512,
       "metodo": "Presencial",
       "margem_erro": 2.0,
+      "faixa_etaria": "Não informado",
+      "escolaridade": "Não informado",
+      "renda_domiciliar": "Não informado",
+      "fonte_ponderacao": "Não informado",
       "estimativas": {
         "Lula": 49.4,
         "Jair Bolsonaro": 34.8,
@@ -231,6 +295,10 @@ window.DASH_DATA = {
       "amostra": 2512,
       "metodo": "Presencial",
       "margem_erro": 2.0,
+      "faixa_etaria": "Não informado",
+      "escolaridade": "Não informado",
+      "renda_domiciliar": "Não informado",
+      "fonte_ponderacao": "Não informado",
       "estimativas": {
         "Lula": 51.1,
         "Jair Bolsonaro": 34.4,
@@ -245,6 +313,10 @@ window.DASH_DATA = {
       "amostra": 3008,
       "metodo": "Presencial",
       "margem_erro": 2.0,
+      "faixa_etaria": "Não informado",
+      "escolaridade": "Não informado",
+      "renda_domiciliar": "Não informado",
+      "fonte_ponderacao": "Não informado",
       "estimativas": {
         "Lula": 51.7,
         "Jair Bolsonaro": 34.1,
@@ -259,6 +331,10 @@ window.DASH_DATA = {
       "amostra": 3008,
       "metodo": "Presencial",
       "margem_erro": 2.0,
+      "faixa_etaria": "Não informado",
+      "escolaridade": "Não informado",
+      "renda_domiciliar": "Não informado",
+      "fonte_ponderacao": "Não informado",
       "estimativas": {
         "Lula": 52.2,
         "Jair Bolsonaro": 33.7,
@@ -273,6 +349,10 @@ window.DASH_DATA = {
       "amostra": 3008,
       "metodo": "Presencial",
       "margem_erro": 2.0,
+      "faixa_etaria": "Não informado",
+      "escolaridade": "Não informado",
+      "renda_domiciliar": "Não informado",
+      "fonte_ponderacao": "Não informado",
       "estimativas": {
         "Lula": 50.5,
         "Jair Bolsonaro": 36.6,
@@ -287,6 +367,10 @@ window.DASH_DATA = {
       "amostra": 1500,
       "metodo": "Fone",
       "margem_erro": 3.0,
+      "faixa_etaria": "Não informado",
+      "escolaridade": "Não informado",
+      "renda_domiciliar": "Não informado",
+      "fonte_ponderacao": "Não informado",
       "estimativas": {
         "Lula": 46.6,
         "Jair Bolsonaro": 36.4,
@@ -301,6 +385,10 @@ window.DASH_DATA = {
       "amostra": 1500,
       "metodo": "Fone",
       "margem_erro": 3.0,
+      "faixa_etaria": "Não informado",
+      "escolaridade": "Não informado",
+      "renda_domiciliar": "Não informado",
+      "fonte_ponderacao": "Não informado",
       "estimativas": {
         "Lula": 48.9,
         "Jair Bolsonaro": 39.1,
@@ -315,6 +403,10 @@ window.DASH_DATA = {
       "amostra": 1500,
       "metodo": "Fone",
       "margem_erro": 3.0,
+      "faixa_etaria": "Não informado",
+      "escolaridade": "Não informado",
+      "renda_domiciliar": "Não informado",
+      "fonte_ponderacao": "Não informado",
       "estimativas": {
         "Lula": 48.9,
         "Jair Bolsonaro": 36.7,
@@ -329,6 +421,10 @@ window.DASH_DATA = {
       "amostra": 1500,
       "metodo": "Fone",
       "margem_erro": 3.0,
+      "faixa_etaria": "Não informado",
+      "escolaridade": "Não informado",
+      "renda_domiciliar": "Não informado",
+      "fonte_ponderacao": "Não informado",
       "estimativas": {
         "Lula": 45.6,
         "Jair Bolsonaro": 37.3,
@@ -343,6 +439,10 @@ window.DASH_DATA = {
       "amostra": 1500,
       "metodo": "Fone",
       "margem_erro": 3.0,
+      "faixa_etaria": "Não informado",
+      "escolaridade": "Não informado",
+      "renda_domiciliar": "Não informado",
+      "fonte_ponderacao": "Não informado",
       "estimativas": {
         "Lula": 49.0,
         "Jair Bolsonaro": 38.5,
@@ -357,6 +457,10 @@ window.DASH_DATA = {
       "amostra": 1100,
       "metodo": "Fone",
       "margem_erro": 3.0,
+      "faixa_etaria": "Não informado",
+      "escolaridade": "Não informado",
+      "renda_domiciliar": "Não informado",
+      "fonte_ponderacao": "Não informado",
       "estimativas": {
         "Lula": 46.3,
         "Jair Bolsonaro": 37.9,
@@ -371,6 +475,10 @@ window.DASH_DATA = {
       "amostra": 1100,
       "metodo": "Fone",
       "margem_erro": 3.0,
+      "faixa_etaria": "Não informado",
+      "escolaridade": "Não informado",
+      "renda_domiciliar": "Não informado",
+      "fonte_ponderacao": "Não informado",
       "estimativas": {
         "Lula": 48.9,
         "Jair Bolsonaro": 38.0,
@@ -385,6 +493,10 @@ window.DASH_DATA = {
       "amostra": 2000,
       "metodo": "Fone",
       "margem_erro": 2.2,
+      "faixa_etaria": "Não informado",
+      "escolaridade": "Não informado",
+      "renda_domiciliar": "Não informado",
+      "fonte_ponderacao": "Não informado",
       "estimativas": {
         "Lula": 49.5,
         "Jair Bolsonaro": 37.6,
@@ -399,6 +511,10 @@ window.DASH_DATA = {
       "amostra": 1100,
       "metodo": "Fone",
       "margem_erro": 3.0,
+      "faixa_etaria": "Não informado",
+      "escolaridade": "Não informado",
+      "renda_domiciliar": "Não informado",
+      "fonte_ponderacao": "Não informado",
       "estimativas": {
         "Lula": 50.6,
         "Jair Bolsonaro": 38.5,
@@ -413,6 +529,10 @@ window.DASH_DATA = {
       "amostra": 1100,
       "metodo": "Fone",
       "margem_erro": 3.0,
+      "faixa_etaria": "Não informado",
+      "escolaridade": "Não informado",
+      "renda_domiciliar": "Não informado",
+      "fonte_ponderacao": "Não informado",
       "estimativas": {
         "Lula": 47.9,
         "Jair Bolsonaro": 34.4,
@@ -427,6 +547,10 @@ window.DASH_DATA = {
       "amostra": 2002,
       "metodo": "Fluxo",
       "margem_erro": 2.2,
+      "faixa_etaria": "Ponderada (4 faixas): 16-17, 18-34, 35-59, 60+",
+      "escolaridade": "Ponderada (3 níveis): Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE + IBGE (renda familiar)",
       "estimativas": {
         "Lula": 48.1,
         "Jair Bolsonaro": 31.9,
@@ -441,6 +565,10 @@ window.DASH_DATA = {
       "amostra": 2002,
       "metodo": "Fone",
       "margem_erro": 2.2,
+      "faixa_etaria": "Ponderada (4 faixas): 16-17, 18-34, 35-59, 60+",
+      "escolaridade": "Ponderada (3 níveis): Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE + IBGE (renda familiar)",
       "estimativas": {
         "Lula": 46.4,
         "Jair Bolsonaro": 36.5,
@@ -455,6 +583,10 @@ window.DASH_DATA = {
       "amostra": 2002,
       "metodo": "Fluxo",
       "margem_erro": 2.2,
+      "faixa_etaria": "Ponderada (4 faixas): 16-17, 18-34, 35-59, 60+",
+      "escolaridade": "Ponderada (3 níveis): Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE + IBGE (renda familiar)",
       "estimativas": {
         "Lula": 48.7,
         "Jair Bolsonaro": 39.2,
@@ -469,6 +601,10 @@ window.DASH_DATA = {
       "amostra": 2002,
       "metodo": "Fluxo",
       "margem_erro": 2.2,
+      "faixa_etaria": "Ponderada (4 faixas): 16-17, 18-34, 35-59, 60+",
+      "escolaridade": "Ponderada (3 níveis): Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE + IBGE (renda familiar)",
       "estimativas": {
         "Lula": 49.0,
         "Jair Bolsonaro": 39.3,
@@ -483,6 +619,10 @@ window.DASH_DATA = {
       "amostra": 2002,
       "metodo": "Fluxo",
       "margem_erro": 2.2,
+      "faixa_etaria": "Ponderada (4 faixas): 16-17, 18-34, 35-59, 60+",
+      "escolaridade": "Ponderada (3 níveis): Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE + IBGE (renda familiar)",
       "estimativas": {
         "Lula": 48.3,
         "Jair Bolsonaro": 39.7,
@@ -497,6 +637,10 @@ window.DASH_DATA = {
       "amostra": 2020,
       "metodo": "Presencial",
       "margem_erro": 2.2,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Não ponderada (fator = 1, resultado de campo)",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "IBGE Censo 2010 + TSE setembro/2022",
       "estimativas": {
         "Lula": 45.7,
         "Jair Bolsonaro": 41.4,
@@ -511,6 +655,10 @@ window.DASH_DATA = {
       "amostra": 2020,
       "metodo": "Presencial",
       "margem_erro": 2.2,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Não ponderada (fator = 1, resultado de campo)",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "IBGE Censo 2010 + TSE setembro/2022",
       "estimativas": {
         "Lula": 44.9,
         "Jair Bolsonaro": 41.4,
@@ -525,6 +673,10 @@ window.DASH_DATA = {
       "amostra": 2020,
       "metodo": "Presencial",
       "margem_erro": 2.2,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Não ponderada (fator = 1, resultado de campo)",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "IBGE Censo 2010 + TSE setembro/2022",
       "estimativas": {
         "Lula": 44.8,
         "Jair Bolsonaro": 40.6,
@@ -539,6 +691,10 @@ window.DASH_DATA = {
       "amostra": 2020,
       "metodo": "Presencial",
       "margem_erro": 2.2,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Não ponderada (fator = 1, resultado de campo)",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "IBGE Censo 2010 + TSE setembro/2022",
       "estimativas": {
         "Lula": 47.0,
         "Jair Bolsonaro": 40.0,
@@ -553,6 +709,10 @@ window.DASH_DATA = {
       "amostra": 2020,
       "metodo": "Fone",
       "margem_erro": 2.2,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Não ponderada (fator = 1, resultado de campo)",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "IBGE Censo 2010 + TSE setembro/2022",
       "estimativas": {
         "Lula": 47.2,
         "Jair Bolsonaro": 40.1,
@@ -567,6 +727,10 @@ window.DASH_DATA = {
       "amostra": 3,
       "metodo": "Fone",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (4 faixas): 16-24, 25-44, 45-59, 60+",
+      "escolaridade": "Ponderada (4 níveis): sem escola, Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE setembro/2022 + IBGE (renda familiar)",
       "estimativas": {
         "Lula": 46.5,
         "Jair Bolsonaro": 39.4,
@@ -581,6 +745,10 @@ window.DASH_DATA = {
       "amostra": 3,
       "metodo": "Fone",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (4 faixas): 16-24, 25-44, 45-59, 60+",
+      "escolaridade": "Ponderada (4 níveis): sem escola, Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE setembro/2022 + IBGE (renda familiar)",
       "estimativas": {
         "Lula": 46.2,
         "Jair Bolsonaro": 39.8,
@@ -595,6 +763,10 @@ window.DASH_DATA = {
       "amostra": 3500,
       "metodo": "Fone",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (4 faixas): 16-24, 25-44, 45-59, 60+",
+      "escolaridade": "Ponderada (4 níveis): sem escola, Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE setembro/2022 + IBGE (renda familiar)",
       "estimativas": {
         "Lula": 45.7,
         "Jair Bolsonaro": 39.4,
@@ -609,6 +781,10 @@ window.DASH_DATA = {
       "amostra": 3500,
       "metodo": "Fone",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (4 faixas): 16-24, 25-44, 45-59, 60+",
+      "escolaridade": "Ponderada (4 níveis): sem escola, Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE setembro/2022 + IBGE (renda familiar)",
       "estimativas": {
         "Lula": 46.8,
         "Jair Bolsonaro": 39.4,
@@ -623,6 +799,10 @@ window.DASH_DATA = {
       "amostra": 4500,
       "metodo": "Fone",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (4 faixas): 16-24, 25-44, 45-59, 60+",
+      "escolaridade": "Ponderada (4 níveis): sem escola, Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE setembro/2022 + IBGE (renda familiar)",
       "estimativas": {
         "Lula": 47.4,
         "Jair Bolsonaro": 37.9,
@@ -637,6 +817,10 @@ window.DASH_DATA = {
       "amostra": 2000,
       "metodo": "Presencial",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (3 níveis): Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE 2022 + IBGE Censo 2010 + IBGE PNADC 2021 e 2/2022",
       "estimativas": {
         "Lula": 48.4,
         "Jair Bolsonaro": 37.4,
@@ -651,6 +835,10 @@ window.DASH_DATA = {
       "amostra": 2000,
       "metodo": "Presencial",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (3 níveis): Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE 2022 + IBGE Censo 2010 + IBGE PNADC 2021 e 2/2022",
       "estimativas": {
         "Lula": 47.2,
         "Jair Bolsonaro": 38.2,
@@ -665,6 +853,10 @@ window.DASH_DATA = {
       "amostra": 2000,
       "metodo": "Presencial",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (3 níveis): Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE 2022 + IBGE Censo 2010 + IBGE PNADC 2021 e 2/2022",
       "estimativas": {
         "Lula": 48.4,
         "Jair Bolsonaro": 37.4,
@@ -679,6 +871,10 @@ window.DASH_DATA = {
       "amostra": 2000,
       "metodo": "Presencial",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (3 níveis): Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE 2022 + IBGE Censo 2010 + IBGE PNADC 2021 e 2/2022",
       "estimativas": {
         "Lula": 50.6,
         "Jair Bolsonaro": 36.3,
@@ -693,6 +889,10 @@ window.DASH_DATA = {
       "amostra": 3600,
       "metodo": "Presencial",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (3 níveis): Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE 2022 + IBGE Censo 2010 + IBGE PNADC 2021 e 2/2022",
       "estimativas": {
         "Lula": 49.0,
         "Jair Bolsonaro": 38.0,
@@ -709,6 +909,10 @@ window.DASH_DATA = {
       "amostra": 4500,
       "metodo": "Web",
       "margem_erro": 1.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (3 níveis): Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (5 faixas): até R$2k, R$2-3k, R$3-5k, R$5-10k, R$10k+",
+      "fonte_ponderacao": "PNADC 2021 (escolaridade e renda) + TSE 2022 (sexo e idade)",
       "estimativas": {
         "Lula": 55.4,
         "Jair Bolsonaro": 44.6
@@ -720,6 +924,10 @@ window.DASH_DATA = {
       "amostra": 4500,
       "metodo": "Web",
       "margem_erro": 1.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (3 níveis): Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (5 faixas): até R$2k, R$2-3k, R$3-5k, R$5-10k, R$10k+",
+      "fonte_ponderacao": "PNADC 2021 (escolaridade e renda) + TSE 2022 (sexo e idade)",
       "estimativas": {
         "Lula": 52.4,
         "Jair Bolsonaro": 47.6
@@ -731,6 +939,10 @@ window.DASH_DATA = {
       "amostra": 4500,
       "metodo": "Web",
       "margem_erro": 1.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (3 níveis): Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (5 faixas): até R$2k, R$2-3k, R$3-5k, R$5-10k, R$10k+",
+      "fonte_ponderacao": "PNADC 2021 (escolaridade e renda) + TSE 2022 (sexo e idade)",
       "estimativas": {
         "Lula": 53.0,
         "Jair Bolsonaro": 47.1
@@ -742,6 +954,10 @@ window.DASH_DATA = {
       "amostra": 7500,
       "metodo": "Web",
       "margem_erro": 1.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (3 níveis): Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (5 faixas): até R$2k, R$2-3k, R$3-5k, R$5-10k, R$10k+",
+      "fonte_ponderacao": "PNADC 2021 (escolaridade e renda) + TSE 2022 (sexo e idade)",
       "estimativas": {
         "Lula": 53.4,
         "Jair Bolsonaro": 46.6
@@ -753,6 +969,10 @@ window.DASH_DATA = {
       "amostra": 2884,
       "metodo": "Fluxo",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (2 níveis): até Médio, Superior",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "TSE julho/2022 + IBGE (PNAD 2019 e Estimativa 2021)",
       "estimativas": {
         "Lula": 52.7,
         "Jair Bolsonaro": 47.3
@@ -764,6 +984,10 @@ window.DASH_DATA = {
       "amostra": 2898,
       "metodo": "Fluxo",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (2 níveis): até Médio, Superior",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "TSE julho/2022 + IBGE (PNAD 2019 e Estimativa 2021)",
       "estimativas": {
         "Lula": 52.7,
         "Jair Bolsonaro": 47.3
@@ -775,6 +999,10 @@ window.DASH_DATA = {
       "amostra": 2912,
       "metodo": "Fluxo",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (2 níveis): até Médio, Superior",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "TSE julho/2022 + IBGE (PNAD 2019 e Estimativa 2021)",
       "estimativas": {
         "Lula": 52.1,
         "Jair Bolsonaro": 47.9
@@ -786,6 +1014,10 @@ window.DASH_DATA = {
       "amostra": 4592,
       "metodo": "Fluxo",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (2 níveis): até Médio, Superior",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "TSE julho/2022 + IBGE (PNAD 2019 e Estimativa 2021)",
       "estimativas": {
         "Lula": 52.7,
         "Jair Bolsonaro": 47.3
@@ -797,6 +1029,10 @@ window.DASH_DATA = {
       "amostra": 8320,
       "metodo": "Fluxo",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (2 níveis): até Médio, Superior",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "TSE julho/2022 + IBGE (PNAD 2019 e Estimativa 2021)",
       "estimativas": {
         "Lula": 52.1,
         "Jair Bolsonaro": 47.9
@@ -808,6 +1044,10 @@ window.DASH_DATA = {
       "amostra": 2000,
       "metodo": "Fone",
       "margem_erro": 2.2,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (8 níveis: de analfabeto a superior completo)",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "IBGE Censo 2010 + TSE julho/2022",
       "estimativas": {
         "Lula": 55.0,
         "Jair Bolsonaro": 45.0
@@ -819,6 +1059,10 @@ window.DASH_DATA = {
       "amostra": 2000,
       "metodo": "Fone",
       "margem_erro": 2.2,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (8 níveis: de analfabeto a superior completo)",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "IBGE Censo 2010 + TSE julho/2022",
       "estimativas": {
         "Lula": 51.7,
         "Jair Bolsonaro": 48.3
@@ -830,6 +1074,10 @@ window.DASH_DATA = {
       "amostra": 2000,
       "metodo": "Fone",
       "margem_erro": 2.2,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (8 níveis: de analfabeto a superior completo)",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "IBGE Censo 2010 + TSE julho/2022",
       "estimativas": {
         "Lula": 50.2,
         "Jair Bolsonaro": 49.8
@@ -841,6 +1089,10 @@ window.DASH_DATA = {
       "amostra": 2000,
       "metodo": "Fone",
       "margem_erro": 2.2,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (8 níveis: de analfabeto a superior completo)",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "IBGE Censo 2010 + TSE julho/2022",
       "estimativas": {
         "Lula": 49.5,
         "Jair Bolsonaro": 50.5
@@ -852,6 +1104,10 @@ window.DASH_DATA = {
       "amostra": 2000,
       "metodo": "Fone",
       "margem_erro": 2.2,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (8 níveis: de analfabeto a superior completo)",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "IBGE Censo 2010 + TSE julho/2022",
       "estimativas": {
         "Lula": 49.7,
         "Jair Bolsonaro": 50.3
@@ -863,6 +1119,10 @@ window.DASH_DATA = {
       "amostra": 2000,
       "metodo": "Presencial",
       "margem_erro": 2.0,
+      "faixa_etaria": "Não informado",
+      "escolaridade": "Não informado",
+      "renda_domiciliar": "Não informado",
+      "fonte_ponderacao": "Não informado",
       "estimativas": {
         "Lula": 54.3,
         "Jair Bolsonaro": 45.7
@@ -874,6 +1134,10 @@ window.DASH_DATA = {
       "amostra": 2000,
       "metodo": "Presencial",
       "margem_erro": 2.0,
+      "faixa_etaria": "Não informado",
+      "escolaridade": "Não informado",
+      "renda_domiciliar": "Não informado",
+      "fonte_ponderacao": "Não informado",
       "estimativas": {
         "Lula": 54.8,
         "Jair Bolsonaro": 45.2
@@ -885,6 +1149,10 @@ window.DASH_DATA = {
       "amostra": 3008,
       "metodo": "Presencial",
       "margem_erro": 2.0,
+      "faixa_etaria": "Não informado",
+      "escolaridade": "Não informado",
+      "renda_domiciliar": "Não informado",
+      "fonte_ponderacao": "Não informado",
       "estimativas": {
         "Lula": 53.8,
         "Jair Bolsonaro": 46.2
@@ -896,6 +1164,10 @@ window.DASH_DATA = {
       "amostra": 3008,
       "metodo": "Presencial",
       "margem_erro": 2.0,
+      "faixa_etaria": "Não informado",
+      "escolaridade": "Não informado",
+      "renda_domiciliar": "Não informado",
+      "fonte_ponderacao": "Não informado",
       "estimativas": {
         "Lula": 53.8,
         "Jair Bolsonaro": 46.2
@@ -907,6 +1179,10 @@ window.DASH_DATA = {
       "amostra": 4272,
       "metodo": "Presencial",
       "margem_erro": 3.0,
+      "faixa_etaria": "Não informado",
+      "escolaridade": "Não informado",
+      "renda_domiciliar": "Não informado",
+      "fonte_ponderacao": "Não informado",
       "estimativas": {
         "Lula": 53.8,
         "Jair Bolsonaro": 46.2
@@ -918,6 +1194,10 @@ window.DASH_DATA = {
       "amostra": 1500,
       "metodo": "Fone",
       "margem_erro": 3.0,
+      "faixa_etaria": "Não informado",
+      "escolaridade": "Não informado",
+      "renda_domiciliar": "Não informado",
+      "fonte_ponderacao": "Não informado",
       "estimativas": {
         "Lula": 55.1,
         "Jair Bolsonaro": 44.9
@@ -929,6 +1209,10 @@ window.DASH_DATA = {
       "amostra": 1500,
       "metodo": "Fone",
       "margem_erro": 3.0,
+      "faixa_etaria": "Não informado",
+      "escolaridade": "Não informado",
+      "renda_domiciliar": "Não informado",
+      "fonte_ponderacao": "Não informado",
       "estimativas": {
         "Lula": 55.9,
         "Jair Bolsonaro": 44.1
@@ -940,6 +1224,10 @@ window.DASH_DATA = {
       "amostra": 1500,
       "metodo": "Fone",
       "margem_erro": 3.0,
+      "faixa_etaria": "Não informado",
+      "escolaridade": "Não informado",
+      "renda_domiciliar": "Não informado",
+      "fonte_ponderacao": "Não informado",
       "estimativas": {
         "Lula": 52.1,
         "Jair Bolsonaro": 47.9
@@ -951,6 +1239,10 @@ window.DASH_DATA = {
       "amostra": 1100,
       "metodo": "Fone",
       "margem_erro": 3.0,
+      "faixa_etaria": "Não informado",
+      "escolaridade": "Não informado",
+      "renda_domiciliar": "Não informado",
+      "fonte_ponderacao": "Não informado",
       "estimativas": {
         "Lula": 59.1,
         "Jair Bolsonaro": 40.9
@@ -962,6 +1254,10 @@ window.DASH_DATA = {
       "amostra": 1100,
       "metodo": "Fone",
       "margem_erro": 3.0,
+      "faixa_etaria": "Não informado",
+      "escolaridade": "Não informado",
+      "renda_domiciliar": "Não informado",
+      "fonte_ponderacao": "Não informado",
       "estimativas": {
         "Lula": 53.8,
         "Jair Bolsonaro": 46.2
@@ -973,6 +1269,10 @@ window.DASH_DATA = {
       "amostra": 2000,
       "metodo": "Fone",
       "margem_erro": 2.2,
+      "faixa_etaria": "Não informado",
+      "escolaridade": "Não informado",
+      "renda_domiciliar": "Não informado",
+      "fonte_ponderacao": "Não informado",
       "estimativas": {
         "Lula": 53.3,
         "Jair Bolsonaro": 46.7
@@ -984,6 +1284,10 @@ window.DASH_DATA = {
       "amostra": 1100,
       "metodo": "Fone",
       "margem_erro": 3.0,
+      "faixa_etaria": "Não informado",
+      "escolaridade": "Não informado",
+      "renda_domiciliar": "Não informado",
+      "fonte_ponderacao": "Não informado",
       "estimativas": {
         "Lula": 53.3,
         "Jair Bolsonaro": 46.7
@@ -995,6 +1299,10 @@ window.DASH_DATA = {
       "amostra": 1100,
       "metodo": "Fone",
       "margem_erro": 3.0,
+      "faixa_etaria": "Não informado",
+      "escolaridade": "Não informado",
+      "renda_domiciliar": "Não informado",
+      "fonte_ponderacao": "Não informado",
       "estimativas": {
         "Lula": 53.2,
         "Jair Bolsonaro": 46.8
@@ -1006,6 +1314,10 @@ window.DASH_DATA = {
       "amostra": 2002,
       "metodo": "Fluxo",
       "margem_erro": 2.2,
+      "faixa_etaria": "Ponderada (4 faixas): 16-17, 18-34, 35-59, 60+",
+      "escolaridade": "Ponderada (3 níveis): Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE + IBGE (renda familiar)",
       "estimativas": {
         "Lula": 56.4,
         "Jair Bolsonaro": 43.6
@@ -1017,6 +1329,10 @@ window.DASH_DATA = {
       "amostra": 2002,
       "metodo": "Fluxo",
       "margem_erro": 2.2,
+      "faixa_etaria": "Ponderada (4 faixas): 16-17, 18-34, 35-59, 60+",
+      "escolaridade": "Ponderada (3 níveis): Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE + IBGE (renda familiar)",
       "estimativas": {
         "Lula": 55.7,
         "Jair Bolsonaro": 44.3
@@ -1028,6 +1344,10 @@ window.DASH_DATA = {
       "amostra": 2002,
       "metodo": "Fluxo",
       "margem_erro": 2.2,
+      "faixa_etaria": "Ponderada (4 faixas): 16-17, 18-34, 35-59, 60+",
+      "escolaridade": "Ponderada (3 níveis): Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE + IBGE (renda familiar)",
       "estimativas": {
         "Lula": 55.0,
         "Jair Bolsonaro": 45.0
@@ -1039,6 +1359,10 @@ window.DASH_DATA = {
       "amostra": 2002,
       "metodo": "Fluxo",
       "margem_erro": 2.2,
+      "faixa_etaria": "Ponderada (4 faixas): 16-17, 18-34, 35-59, 60+",
+      "escolaridade": "Ponderada (3 níveis): Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE + IBGE (renda familiar)",
       "estimativas": {
         "Lula": 53.5,
         "Jair Bolsonaro": 46.5
@@ -1050,6 +1374,10 @@ window.DASH_DATA = {
       "amostra": 2002,
       "metodo": "Fluxo",
       "margem_erro": 2.2,
+      "faixa_etaria": "Ponderada (4 faixas): 16-17, 18-34, 35-59, 60+",
+      "escolaridade": "Ponderada (3 níveis): Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE + IBGE (renda familiar)",
       "estimativas": {
         "Lula": 51.1,
         "Jair Bolsonaro": 48.9
@@ -1061,6 +1389,10 @@ window.DASH_DATA = {
       "amostra": 2020,
       "metodo": "Fone",
       "margem_erro": 2.2,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Não ponderada (fator = 1, resultado de campo)",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "IBGE Censo 2010 + TSE setembro/2022",
       "estimativas": {
         "Lula": 51.9,
         "Jair Bolsonaro": 48.1
@@ -1072,6 +1404,10 @@ window.DASH_DATA = {
       "amostra": 2020,
       "metodo": "Presencial",
       "margem_erro": 2.2,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Não ponderada (fator = 1, resultado de campo)",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "IBGE Censo 2010 + TSE setembro/2022",
       "estimativas": {
         "Lula": 51.9,
         "Jair Bolsonaro": 48.1
@@ -1083,6 +1419,10 @@ window.DASH_DATA = {
       "amostra": 2020,
       "metodo": "Presencial",
       "margem_erro": 2.2,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Não ponderada (fator = 1, resultado de campo)",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "IBGE Censo 2010 + TSE setembro/2022",
       "estimativas": {
         "Lula": 51.3,
         "Jair Bolsonaro": 48.7
@@ -1094,6 +1434,10 @@ window.DASH_DATA = {
       "amostra": 2020,
       "metodo": "Presencial",
       "margem_erro": 2.2,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Não ponderada (fator = 1, resultado de campo)",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "IBGE Censo 2010 + TSE setembro/2022",
       "estimativas": {
         "Lula": 50.2,
         "Jair Bolsonaro": 49.8
@@ -1105,6 +1449,10 @@ window.DASH_DATA = {
       "amostra": 2400,
       "metodo": "Presencial",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Não ponderada (fator = 1, resultado de campo)",
+      "renda_domiciliar": "Não ponderada (fator = 1, resultado de campo)",
+      "fonte_ponderacao": "IBGE Censo 2010 + TSE setembro/2022",
       "estimativas": {
         "Lula": 50.4,
         "Jair Bolsonaro": 49.6
@@ -1116,6 +1464,10 @@ window.DASH_DATA = {
       "amostra": 3500,
       "metodo": "Fone",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (4 faixas): 16-24, 25-44, 45-59, 60+",
+      "escolaridade": "Ponderada (4 níveis): sem escola, Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE setembro/2022 + IBGE (renda familiar)",
       "estimativas": {
         "Lula": 54.8,
         "Jair Bolsonaro": 45.2
@@ -1127,6 +1479,10 @@ window.DASH_DATA = {
       "amostra": 3500,
       "metodo": "Fone",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (4 faixas): 16-24, 25-44, 45-59, 60+",
+      "escolaridade": "Ponderada (4 níveis): sem escola, Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE setembro/2022 + IBGE (renda familiar)",
       "estimativas": {
         "Lula": 52.2,
         "Jair Bolsonaro": 47.8
@@ -1138,6 +1494,10 @@ window.DASH_DATA = {
       "amostra": 5000,
       "metodo": "Fone",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (4 faixas): 16-24, 25-44, 45-59, 60+",
+      "escolaridade": "Ponderada (4 níveis): sem escola, Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE setembro/2022 + IBGE (renda familiar)",
       "estimativas": {
         "Lula": 52.2,
         "Jair Bolsonaro": 47.8
@@ -1149,6 +1509,10 @@ window.DASH_DATA = {
       "amostra": 5000,
       "metodo": "Fone",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (4 faixas): 16-24, 25-44, 45-59, 60+",
+      "escolaridade": "Ponderada (4 níveis): sem escola, Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE setembro/2022 + IBGE (renda familiar)",
       "estimativas": {
         "Lula": 52.2,
         "Jair Bolsonaro": 47.8
@@ -1160,6 +1524,10 @@ window.DASH_DATA = {
       "amostra": 5000,
       "metodo": "Fone",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (4 faixas): 16-24, 25-44, 45-59, 60+",
+      "escolaridade": "Ponderada (4 níveis): sem escola, Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE setembro/2022 + IBGE (renda familiar)",
       "estimativas": {
         "Lula": 52.7,
         "Jair Bolsonaro": 47.3
@@ -1171,6 +1539,10 @@ window.DASH_DATA = {
       "amostra": 2000,
       "metodo": "Presencial",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (3 níveis): Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE 2022 + IBGE Censo 2010 + IBGE PNADC 2021 e 2/2022",
       "estimativas": {
         "Lula": 53.9,
         "Jair Bolsonaro": 46.1
@@ -1182,6 +1554,10 @@ window.DASH_DATA = {
       "amostra": 2000,
       "metodo": "Presencial",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (3 níveis): Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE 2022 + IBGE Censo 2010 + IBGE PNADC 2021 e 2/2022",
       "estimativas": {
         "Lula": 54.4,
         "Jair Bolsonaro": 45.6
@@ -1193,6 +1569,10 @@ window.DASH_DATA = {
       "amostra": 2000,
       "metodo": "Presencial",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (3 níveis): Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE 2022 + IBGE Censo 2010 + IBGE PNADC 2021 e 2/2022",
       "estimativas": {
         "Lula": 52.8,
         "Jair Bolsonaro": 47.2
@@ -1204,6 +1584,10 @@ window.DASH_DATA = {
       "amostra": 2000,
       "metodo": "Presencial",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (3 níveis): Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE 2022 + IBGE Censo 2010 + IBGE PNADC 2021 e 2/2022",
       "estimativas": {
         "Lula": 53.3,
         "Jair Bolsonaro": 46.7
@@ -1215,6 +1599,10 @@ window.DASH_DATA = {
       "amostra": 2000,
       "metodo": "Presencial",
       "margem_erro": 2.0,
+      "faixa_etaria": "Ponderada (5 faixas): 16-24, 25-34, 35-44, 45-59, 60+",
+      "escolaridade": "Ponderada (3 níveis): Fundamental, Médio, Superior",
+      "renda_domiciliar": "Ponderada (3 faixas): até 2 SM, 2-5 SM, 5+ SM",
+      "fonte_ponderacao": "TSE 2022 + IBGE Censo 2010 + IBGE PNADC 2021 e 2/2022",
       "estimativas": {
         "Lula": 51.7,
         "Jair Bolsonaro": 48.3
