@@ -827,31 +827,39 @@ function renderMetodologiaGeral() {
 // ============================================================
 
 /**
- * Agrupa pesquisas T1+T2 pelo valor do campo metodológico informado
- * e retorna [{ value, avg, n }] ordenado do MELHOR para o PIOR,
- * conforme a metodologia atual (higherBetter true/false).
- * Ignora pesquisas com valor "Não informado" ou vazio.
+ * Agrupa pesquisas pelo valor do campo metodológico informado e retorna
+ * [{ value, avg, n }] ordenado do MELHOR para o PIOR, conforme a metodologia
+ * atual (higherBetter true/false). Ignora pesquisas com valor "Não informado"
+ * ou vazio.
+ *
+ * @param {string} field            Nome do campo (faixa_etaria, etc.)
+ * @param {string} metodologiaKey   'acerto' | 'pindograma'
+ * @param {string} turno            'geral' | 't1' | 't2'
  */
-function computePerformanceByField(field, metodologiaKey) {
+function computePerformanceByField(field, metodologiaKey, turno = 'geral') {
   const M = METODOLOGIAS[metodologiaKey];
   const groups = {};
   const push = (value, score) => {
     (groups[value] = groups[value] || []).push(score);
   };
-  polls1.forEach(p => {
-    const v = p[field];
-    if (!v || v === 'Não informado') return;
-    const s = M.compute(p, real1, CANDIDATOS_T1);
-    if (s == null) return;
-    push(v, s);
-  });
-  polls2.forEach(p => {
-    const v = p[field];
-    if (!v || v === 'Não informado') return;
-    const s = M.compute(p, real2, CANDIDATOS_T2);
-    if (s == null) return;
-    push(v, s);
-  });
+  if (turno === 'geral' || turno === 't1') {
+    polls1.forEach(p => {
+      const v = p[field];
+      if (!v || v === 'Não informado') return;
+      const s = M.compute(p, real1, CANDIDATOS_T1);
+      if (s == null) return;
+      push(v, s);
+    });
+  }
+  if (turno === 'geral' || turno === 't2') {
+    polls2.forEach(p => {
+      const v = p[field];
+      if (!v || v === 'Não informado') return;
+      const s = M.compute(p, real2, CANDIDATOS_T2);
+      if (s == null) return;
+      push(v, s);
+    });
+  }
   const entries = Object.entries(groups).map(([value, scores]) => ({
     value,
     avg: scores.reduce((a, b) => a + b, 0) / scores.length,
@@ -874,31 +882,40 @@ function makePerformanceByMetodologiaCard(parent) {
       <h3>Desempenho por variável de ponderação</h3>
       <span class="chip chip-real perf-meto-chip">Ranking</span>
     </div>
-    <div class="seg-toggle performance-meto-toggle" role="tablist">
-      <button class="seg active" data-field="faixa_etaria">Faixa etária</button>
-      <button class="seg" data-field="escolaridade">Escolaridade</button>
-      <button class="seg" data-field="renda_domiciliar">Renda</button>
-      <button class="seg" data-field="fonte_ponderacao">Fonte</button>
+    <div class="perf-meto-toggles">
+      <div class="seg-toggle performance-meto-toggle" role="tablist" aria-label="Variável">
+        <button class="seg active" data-field="faixa_etaria">Faixa etária</button>
+        <button class="seg" data-field="escolaridade">Escolaridade</button>
+        <button class="seg" data-field="renda_domiciliar">Renda</button>
+        <button class="seg" data-field="fonte_ponderacao">Fonte</button>
+      </div>
+      <div class="seg-toggle perf-turno-toggle" role="tablist" aria-label="Turno">
+        <button class="seg active" data-turno="geral">Geral</button>
+        <button class="seg" data-turno="t1">1° Turno</button>
+        <button class="seg" data-turno="t2">2° Turno</button>
+      </div>
     </div>
     <div class="chart perf-meto-chart"></div>
   `;
   parent.appendChild(card);
 
   let currentField = 'faixa_etaria';
+  let currentTurno = 'geral';
   let chart = null;
 
   const chartEl = card.querySelector('.chart');
 
   function render() {
     const M = METODOLOGIAS[state.metodologia];
-    const entries = computePerformanceByField(currentField, state.metodologia);
+    const entries = computePerformanceByField(currentField, state.metodologia, currentTurno);
     const fieldCfg = METODOLOGIA_FIELDS.find(f => f.key === currentField);
     const color = fieldCfg ? fieldCfg.color : '#C73DB9';
 
-    // Atualiza o chip com a contagem de pesquisas válidas
+    // Atualiza o chip com a contagem de pesquisas válidas + turno
     const totalPolls = entries.reduce((s, e) => s + e.n, 0);
+    const turnoLabel = currentTurno === 'geral' ? 'Geral' : currentTurno === 't1' ? '1° Turno' : '2° Turno';
     const chip = card.querySelector('.perf-meto-chip');
-    chip.textContent = `${totalPolls} pesquisas · ${M.higherBetter ? 'maior = melhor' : 'menor = melhor'}`;
+    chip.textContent = `${turnoLabel} · ${totalPolls} pesquisas · ${M.higherBetter ? 'maior = melhor' : 'menor = melhor'}`;
     chip.style.background = color + '22';
     chip.style.color = color;
     chip.style.borderColor = color + '55';
@@ -1002,13 +1019,24 @@ function makePerformanceByMetodologiaCard(parent) {
     chart.render();
   }
 
-  // Wire toggle
+  // Wire toggle — variável
   card.querySelectorAll('.performance-meto-toggle .seg').forEach(btn => {
     btn.addEventListener('click', () => {
       if (btn.classList.contains('active')) return;
       card.querySelectorAll('.performance-meto-toggle .seg').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentField = btn.dataset.field;
+      render();
+    });
+  });
+
+  // Wire toggle — turno (Geral / 1° / 2°)
+  card.querySelectorAll('.perf-turno-toggle .seg').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.classList.contains('active')) return;
+      card.querySelectorAll('.perf-turno-toggle .seg').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentTurno = btn.dataset.turno;
       render();
     });
   });

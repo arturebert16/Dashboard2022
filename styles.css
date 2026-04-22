@@ -799,17 +799,25 @@ body.has-fullscreen::before {
 /* ============================================================
    DESEMPENHO POR VARIÁVEL DE PONDERAÇÃO (card do grid-geral)
    ============================================================ */
-.performance-meto-card .performance-meto-toggle {
+.performance-meto-card .perf-meto-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 6px 4px 10px;
+  align-items: center;
+}
+.performance-meto-card .performance-meto-toggle,
+.performance-meto-card .perf-turno-toggle {
   display: inline-flex;
   flex-wrap: wrap;
   gap: 4px;
-  margin: 6px 4px 10px;
   padding: 4px;
   background: var(--bg-0);
   border: 1px solid var(--line);
   border-radius: 10px;
 }
-.performance-meto-card .performance-meto-toggle .seg {
+.performance-meto-card .performance-meto-toggle .seg,
+.performance-meto-card .perf-turno-toggle .seg {
   font-size: 11px;
   padding: 6px 12px;
   border-radius: 7px;
